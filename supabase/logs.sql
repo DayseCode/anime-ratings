@@ -70,17 +70,17 @@ declare
 begin
   if tg_op = 'INSERT' then
     perform public.audit_write('song', 'insert',
-      format('Added %s "%s"%s', new.kind, new.title, case when new.song is not null then ' – ' || new.song else '' end),
+      format('Added %s "%s"%s', new.kind, new.title, case when new.song is not null then ' - ' || new.song else '' end),
       to_jsonb(new));
     return new;
 
   elsif tg_op = 'UPDATE' then
-    if new.title       is distinct from old.title       then changes := changes || format('title: "%s" → "%s"', old.title, new.title); end if;
-    if new.author      is distinct from old.author      then changes := changes || format('author: "%s" → "%s"', coalesce(old.author, '—'), coalesce(new.author, '—')); end if;
-    if new.song        is distinct from old.song        then changes := changes || format('song: "%s" → "%s"', coalesce(old.song, '—'), coalesce(new.song, '—')); end if;
-    if new.youtube_url is distinct from old.youtube_url then changes := changes || format('YouTube link: %s → %s', coalesce(old.youtube_url, '—'), coalesce(new.youtube_url, '—')); end if;
-    if new.vlink_url   is distinct from old.vlink_url   then changes := changes || format('VLINK: %s → %s', coalesce(old.vlink_url, '—'), coalesce(new.vlink_url, '—')); end if;
-    if new.kind        is distinct from old.kind        then changes := changes || format('type: %s → %s', old.kind, new.kind); end if;
+    if new.title       is distinct from old.title       then changes := changes || format('title: "%s" -> "%s"', old.title, new.title); end if;
+    if new.author      is distinct from old.author      then changes := changes || format('author: "%s" -> "%s"', coalesce(old.author, '—'), coalesce(new.author, '—')); end if;
+    if new.song        is distinct from old.song        then changes := changes || format('song: "%s" -> "%s"', coalesce(old.song, '—'), coalesce(new.song, '—')); end if;
+    if new.youtube_url is distinct from old.youtube_url then changes := changes || format('YouTube link: %s -> %s', coalesce(old.youtube_url, '—'), coalesce(new.youtube_url, '—')); end if;
+    if new.vlink_url   is distinct from old.vlink_url   then changes := changes || format('VLINK: %s -> %s', coalesce(old.vlink_url, '—'), coalesce(new.vlink_url, '—')); end if;
+    if new.kind        is distinct from old.kind        then changes := changes || format('type: %s -> %s', old.kind, new.kind); end if;
     if array_length(changes, 1) is null then return new; end if;
     perform public.audit_write('song', 'update',
       format('Edited %s "%s": %s', old.kind, old.title, array_to_string(changes, '; ')),
@@ -89,7 +89,7 @@ begin
 
   else -- DELETE (BEFORE trigger, so the scores still exist and can be saved in the log)
     perform public.audit_write('song', 'delete',
-      format('Deleted %s "%s"%s', old.kind, old.title, case when old.song is not null then ' – ' || old.song else '' end),
+      format('Deleted %s "%s"%s', old.kind, old.title, case when old.song is not null then ' - ' || old.song else '' end),
       jsonb_build_object(
         'song', to_jsonb(old),
         'scores', (select coalesce(jsonb_agg(jsonb_build_object('rater', r.name, 'score', s.score)), '[]'::jsonb)
@@ -132,7 +132,7 @@ begin
   if t is null or rname is null then return null; end if;
 
   perform public.audit_write('score', lower(tg_op),
-    format('%s: %s → %s on %s "%s"', rname, coalesce(oldv::text, '—'), coalesce(newv::text, '—'), k, t),
+    format('%s: %s -> %s on %s "%s"', rname, coalesce(oldv::text, '—'), coalesce(newv::text, '—'), k, t),
     jsonb_build_object('song_id', sid, 'rater_id', rid, 'old', oldv, 'new', newv));
   return null;
 end;
@@ -159,7 +159,7 @@ begin
 
   elsif tg_op = 'UPDATE' then
     if new.name is distinct from old.name then
-      perform public.audit_write('rater', 'update', format('Renamed column "%s" → "%s"', old.name, new.name));
+      perform public.audit_write('rater', 'update', format('Renamed column "%s" -> "%s"', old.name, new.name));
     end if;
     if new.user_id is distinct from old.user_id then
       if new.user_id is null then

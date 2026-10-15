@@ -165,7 +165,7 @@ export default function App() {
   // returns true when the song was deleted
   const deleteSong = useCallback(
     async (song) => {
-      if (!confirm(`Delete "${song.title}${song.song ? ' – ' + song.song : ''}" and all its scores?`)) return false
+      if (!confirm(`Delete "${song.title}${song.song ? ' - ' + song.song : ''}" and all its scores?`)) return false
       const { error } = await supabase.from('songs').delete().eq('id', song.id)
       if (error) {
         notify(error.message)
