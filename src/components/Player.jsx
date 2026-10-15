@@ -203,7 +203,7 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
         )}
         {hidden && !error && (
           <div className="p-cover">
-            <div>🙈 Video hidden — audio only</div>
+            <div>Video hidden — audio only</div>
             <button className="btn small" onClick={() => setHidden(false)}>👁 Show video</button>
           </div>
         )}
@@ -243,7 +243,7 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
             setMuted(false)
           }}
         />
-        <button className="btn small" onClick={() => setHidden(!hidden)}>{hidden ? '👁 Show video' : '🙈 Hide video'}</button>
+        <button className="btn small" onClick={() => setHidden(!hidden)}>{hidden ? '👁 Show video' : 'Hide video'}</button>
       </div>
     </div>
   )
