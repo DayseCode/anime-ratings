@@ -3,7 +3,7 @@ import { supabase } from '../supabase.js'
 import { BADGE, KINDS, isYoutube } from '../utils.js'
 
 /* ---------------- Songs tab: add form (left) + search/delete (right) ---------------- */
-function SongsTab({ data, onAdd, onDelete }) {
+function SongsTab({ data, onAdd, onEdit }) {
   const [kind, setKind] = useState('OP')
   const [f, setF] = useState({ title: '', yt: '', vlink: '', author: '', song: '', url: '' })
   const [query, setQuery] = useState('')
@@ -103,7 +103,7 @@ function SongsTab({ data, onAdd, onDelete }) {
                 {s.kind === 'INSERT' && <em> — {s.author} · {s.song}</em>}
                 <small> (id {s.id})</small>
               </span>
-              <button className="icon-btn" title="Delete" onClick={() => onDelete(s)}>🗑</button>
+              <button className="icon-btn" title="Edit / delete" onClick={() => onEdit(s)}>✏</button>
             </li>
           ))}
           {results.length === 0 && <li className="muted">No matches</li>}
@@ -194,7 +194,7 @@ function UsersTab({ raters, reloadRaters, currentUserId }) {
   )
 }
 
-export default function AdminModal({ data, raters, reloadRaters, onAdd, onDelete, onClose, currentUserId }) {
+export default function AdminModal({ data, raters, reloadRaters, onAdd, onEdit, onClose, currentUserId }) {
   const [tab, setTab] = useState('songs')
   return (
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
@@ -206,7 +206,7 @@ export default function AdminModal({ data, raters, reloadRaters, onAdd, onDelete
           <button className={tab === 'users' ? 'on' : ''} onClick={() => setTab('users')}>Users</button>
         </div>
         {tab === 'songs' ? (
-          <SongsTab data={data} onAdd={onAdd} onDelete={onDelete} />
+          <SongsTab data={data} onAdd={onAdd} onEdit={onEdit} />
         ) : (
           <UsersTab raters={raters} reloadRaters={reloadRaters} currentUserId={currentUserId} />
         )}

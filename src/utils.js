@@ -55,3 +55,32 @@ export async function fetchAllSongs(supabase, kind) {
   }
   return all.map(normalizeSong)
 }
+
+/* ---------- player helpers ---------- */
+
+export function youtubeId(url) {
+  try {
+    const u = new URL(url)
+    if (u.hostname.includes('youtu.be')) return u.pathname.slice(1).split('/')[0] || null
+    if (u.searchParams.get('v')) return u.searchParams.get('v')
+    const m = u.pathname.match(/\/(embed|shorts|live)\/([\w-]{6,})/)
+    return m ? m[2] : null
+  } catch {
+    return null
+  }
+}
+
+// which sources a song can be played from, YouTube first
+export function playableSources(song) {
+  const list = []
+  if (song.youtube_url) list.push({ key: 'yt', url: song.youtube_url })
+  if (song.vlink_url) list.push({ key: 'v', url: song.vlink_url })
+  return list
+}
+
+export const fmtTime = (t) => {
+  if (!Number.isFinite(t) || t < 0) t = 0
+  const m = Math.floor(t / 60)
+  const s = Math.floor(t % 60)
+  return `${m}:${String(s).padStart(2, '0')}`
+}
