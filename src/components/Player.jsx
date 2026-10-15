@@ -155,7 +155,7 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
   const current = sources.find((s) => s.key === src) || sources[0]
 
   const [hidden, setHidden] = usePersisted('player.hideVideo', false)
-  const [volume, setVolume] = usePersisted('player.volume', 0.8)
+  const [volume, setVolume] = usePersisted('player.volume', 0.5)
   const [muted, setMuted] = usePersisted('player.muted', false)
   const [ps, setPs] = useState({ playing: false, time: 0, duration: 0, error: null })
   const ctrl = useRef(null)
