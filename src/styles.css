@@ -131,7 +131,7 @@ td.editable:hover:not(:has(.pill))::after { color: var(--muted); }
 .p-time { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 34px; text-align: center; }
 .p-controls { display: flex; align-items: center; gap: 2px; padding: 6px 10px 10px; }
 .icon-btn.big { font-size: 18px; opacity: .9; }
-.p-vol { width: 70px; margin: 0 6px; accent-color: var(--accent); }
+.p-vol { flex: 1 1 40px; width: auto; min-width: 36px; max-width: 70px; margin: 0 4px; accent-color: var(--accent); }
 .p-controls .btn { margin-left: auto; white-space: nowrap; }
 
 /* ---- modals ---- */

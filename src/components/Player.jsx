@@ -225,7 +225,7 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
         <button className="icon-btn" onClick={onClose} title="Close player"><Icon name="close" fallback="✕" /></button>
       </div>
 
-      <div className="p-screen" onDoubleClick={toggleFull}>
+<div className="p-screen" onDoubleClick={toggleFull} onClick={(e) => { if (!e.target.closest('.p-cover')) ctrl.current?.toggle() }}>
         {current?.key === 'yt' && ytId && (
           <YouTubeEngine key={current.url} videoId={ytId} volume={volume} muted={muted} ctrl={ctrl} onState={merge} onEnded={onNext} />
         )}
