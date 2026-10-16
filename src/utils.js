@@ -84,3 +84,74 @@ export const fmtTime = (t) => {
   const s = Math.floor(t % 60)
   return `${m}:${String(s).padStart(2, '0')}`
 }
+
+/* ---------- live updates ---------- */
+
+// apply a batch of score changes ({songId, raterId, value|null}) made by other people
+export function applyScoreChanges(d, batch) {
+  const bySong = new Map()
+  for (const c of batch) {
+    if (!bySong.has(c.songId)) bySong.set(c.songId, [])
+    bySong.get(c.songId).push(c)
+  }
+  let changed = false
+  const next = { ...d }
+  for (const kind of Object.keys(d)) {
+    let kindChanged = false
+    const list = d[kind].map((s) => {
+      const cs = bySong.get(s.id)
+      if (!cs) return s
+      const scores = { ...s.scores }
+      for (const c of cs) {
+        if (c.value == null) delete scores[c.raterId]
+        else scores[c.raterId] = c.value
+      }
+      kindChanged = true
+      return { ...s, scores, ...stats(scores) }
+    })
+    if (kindChanged) {
+      next[kind] = list
+      changed = true
+    }
+  }
+  return changed ? next : d
+}
+
+// apply one realtime event of the "songs" table (someone added / edited / deleted a song)
+export function applySongEvent(d, p) {
+  if (p.eventType === 'DELETE') {
+    const id = p.old?.id
+    if (id == null) return d
+    let changed = false
+    const next = { ...d }
+    for (const kind of Object.keys(d)) {
+      if (d[kind].some((s) => s.id === id)) {
+        next[kind] = d[kind].filter((s) => s.id !== id)
+        changed = true
+      }
+    }
+    return changed ? next : d
+  }
+
+  const row = p.new
+  if (!row || row.id == null || !d[row.kind]) return d
+  const fields = {
+    id: row.id, kind: row.kind, title: row.title, author: row.author,
+    song: row.song, youtube_url: row.youtube_url, vlink_url: row.vlink_url,
+  }
+  const next = { ...d }
+  let existing = null
+  for (const kind of Object.keys(d)) {
+    const found = d[kind].find((s) => s.id === row.id)
+    if (!found) continue
+    existing = found
+    if (kind !== row.kind) next[kind] = d[kind].filter((s) => s.id !== row.id) // type was changed
+  }
+  if (existing && d[row.kind].includes(existing)) {
+    next[row.kind] = d[row.kind].map((s) => (s.id === row.id ? { ...s, ...fields } : s))
+  } else {
+    const scores = existing ? existing.scores : {}
+    next[row.kind] = [...d[row.kind], { ...fields, scores, ...stats(scores) }].sort((a, b) => a.id - b.id)
+  }
+  return next
+}

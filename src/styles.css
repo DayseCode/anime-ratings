@@ -102,12 +102,13 @@ td.editable:hover:not(:has(.pill))::after { color: var(--muted); }
 /* ---- logs ---- */
 .logs { margin-top: 10px; }
 .logs-title { margin: 0 12px 0 0; font-size: 18px; font-weight: 600; }
-.logs-wrap { margin-top: 10px; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; overflow: hidden; }
+.logs-wrap { margin-top: 10px; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; overflow-x: auto; overflow-y: hidden; }
 .logs-table { width: 100%; }
 .logs-table th { background: var(--panel2); text-align: left; position: static; }
 .logs-table td { white-space: normal; vertical-align: top; }
 .logs-table .nowrap { white-space: nowrap; color: var(--muted); }
-.logs-table .what { word-break: break-word; }
+.logs-table .what, .logs-table td { overflow-wrap: anywhere; }
+.logs-table pre { white-space: pre-wrap; }
 .logs-table pre { background: #0e1016; padding: 8px; border-radius: 6px; max-height: 220px; overflow: auto; font-size: 12px; }
 .logs-table details summary { color: var(--muted); cursor: pointer; font-size: 12px; }
 .etag { border-radius: 5px; padding: 1px 8px; font-size: 12px; font-weight: 600; }
@@ -115,7 +116,7 @@ td.editable:hover:not(:has(.pill))::after { color: var(--muted); }
 .etag.rater { background: #4a3a14; color: #ffd37a; } .etag.profile { background: #3b2a6b; color: #cbb8ff; }
 
 /* ---- player ---- */
-.player { position: fixed; right: 16px; bottom: 16px; width: 400px; max-width: calc(100vw - 24px); background: #0b0d12; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,.65); z-index: 40; overflow: hidden; }
+.player { position: fixed; right: 16px; bottom: 16px; width: 380px; max-width: calc(100vw - 24px); background: #0b0d12; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,.65); z-index: 40; overflow: hidden; }
 .p-head { display: flex; align-items: center; gap: 4px; padding: 8px 8px 8px 12px; }
 .p-title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
 .src-btn { border: 1px solid var(--line); background: var(--panel2); color: var(--muted); border-radius: 5px; font-size: 11px; font-weight: 700; padding: 2px 7px; cursor: pointer; }
@@ -293,5 +294,20 @@ select { padding: 6px 8px; border-radius: 6px; border: 1px solid #ccc; font: inh
   .modal { max-height: 94vh; max-height: 94dvh; }
   .player { right: 8px; bottom: 8px; width: min(380px, calc(100vw - 16px)); }
   .player:not(.full) .p-screen { max-height: 40vh; max-height: 40dvh; }
-  .p-controls { flex-wrap: wrap; row-gap: 4px; }
+  .p-controls { flex-wrap: nowrap; }
+  .p-controls .btn { flex: none; white-space: nowrap; }
+  .player:not(.full) .p-vol { display: none; } /* phones have volume buttons; keeps everything in one row */
+}
+
+/* ---- logs on phones: one card per entry instead of a wide table ---- */
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .logs-table, .logs-table tbody { display: block; }
+  .logs-table thead { display: none; }
+  .logs-table tr { display: grid; grid-template-columns: 1fr auto; gap: 3px 8px; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+  .logs-table td { display: block; border: 0; padding: 0; min-width: 0; }
+  .logs-table td:nth-child(1) { grid-column: 1; grid-row: 1; font-size: 12px; }
+  .logs-table td:nth-child(3) { grid-column: 2; grid-row: 1; justify-self: end; }
+  .logs-table td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; color: var(--muted); font-size: 12px; }
+  .logs-table td:nth-child(4) { grid-column: 1 / -1; grid-row: 3; }
+  .logs-table td.empty { grid-column: 1 / -1; grid-row: auto; padding: 24px 0; }
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { configured, supabase } from './supabase.js'
-import { KINDS, SONG_COLUMNS, fetchAllSongs, normalizeSong, stats } from './utils.js'
+import { KINDS, SONG_COLUMNS, applyScoreChanges, applySongEvent, fetchAllSongs, normalizeSong, stats } from './utils.js'
 import SongTable from './components/SongTable.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import AdminModal from './components/AdminModal.jsx'
@@ -33,6 +33,9 @@ export default function App() {
   const [toast, setToast] = useState(null)
   const toastTimer = useRef()
   const headRef = useRef(null)
+  const recentLocal = useRef(new Map()) // my own recent edits (to ignore their echo)
+  const pendingLive = useRef([]) // score changes from other people, applied once per second
+  const liveTimer = useRef(null)
 
   const notify = useCallback((text, type = 'error') => {
     setToast({ text, type })
@@ -99,6 +102,49 @@ export default function App() {
     Promise.all([reloadRaters(), ...KINDS.map((k) => reloadKind(k.key))]).then(() => setLoading(false))
   }, [reloadRaters, reloadKind])
 
+  /* ---------- live scores from other people (Supabase Realtime) ---------- */
+  useEffect(() => {
+    if (!configured) return
+    const flush = () => {
+      liveTimer.current = null
+      const batch = pendingLive.current
+      pendingLive.current = []
+      if (batch.length) setData((d) => applyScoreChanges(d, batch))
+    }
+    const ch = supabase
+      .channel('scores-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'scores' }, (p) => {
+        const row = p.eventType === 'DELETE' ? p.old : p.new
+        if (!row || row.song_id == null || row.rater_id == null) return
+        const value = p.eventType === 'DELETE' ? null : Number(row.score)
+        const mine = recentLocal.current.get(`${row.song_id}:${row.rater_id}`)
+        if (mine && Date.now() - mine.t < 10000 && mine.value === value) return // echo of my own edit
+        pendingLive.current.push({ songId: row.song_id, raterId: row.rater_id, value })
+        if (!liveTimer.current) liveTimer.current = setTimeout(flush, 1000) // batch: at most 1 update / second
+      })
+      // songs added / edited / deleted by an admin
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'songs' }, (p) => {
+        setData((d) => applySongEvent(d, p))
+        if (p.eventType === 'DELETE') setTrack((t) => (t && t.song.id === p.old?.id ? null : t))
+      })
+      .subscribe()
+
+    // phones put the connection to sleep in the background: catch up when the tab comes back
+    let hiddenAt = 0
+    const onVisible = () => {
+      if (document.hidden) hiddenAt = Date.now()
+      else if (hiddenAt && Date.now() - hiddenAt > 30000) KINDS.forEach((k) => reloadKind(k.key))
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      clearTimeout(liveTimer.current)
+      liveTimer.current = null
+      supabase.removeChannel(ch)
+    }
+  }, [reloadKind])
+
   const myRater = useMemo(() => (userId ? raters.find((r) => r.user_id === userId) ?? null : null), [raters, userId])
   const myRaterId = myRater?.id ?? null
 
@@ -142,6 +188,7 @@ export default function App() {
     async (songId, raterId, value) => {
       // guests and users without their own column can never write anything
       if (!userId || (!isAdmin && raterId !== myRaterId)) return
+      recentLocal.current.set(`${songId}:${raterId}`, { value: value ?? null, t: Date.now() })
       setData((d) => ({
         ...d,
         [tab]: d[tab].map((s) => {
