@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fmtTime, playableSources, youtubeId } from '../utils.js'
+import Icon from './Icon.jsx'
 
 /* remember small preferences (hidden video, volume) in this browser */
 function usePersisted(key, initial) {
@@ -31,6 +32,12 @@ function loadYT() {
     })
   }
   return ytPromise
+}
+
+// turn YouTube subtitles off (also overrides the viewer's own "always show captions" setting)
+function noCaptions(p) {
+  try { p.unloadModule('captions') } catch { /* ignore */ }
+  try { p.unloadModule('cc') } catch { /* ignore */ }
 }
 
 /* ---------- engine 1: direct video file (VLINK) ---------- */
@@ -71,7 +78,10 @@ function VideoEngine({ url, volume, muted, ctrl, onState, onEnded }) {
       onPlay={sync}
       onPause={sync}
       onTimeUpdate={sync}
-      onLoadedMetadata={sync}
+      onLoadedMetadata={(e) => {
+        for (const t of e.currentTarget.textTracks) t.mode = 'disabled' // no subtitles
+        sync()
+      }}
       onEnded={onEnded}
       onError={() => onState({ playing: false, error: 'This video cannot be played here.' })}
     />
@@ -112,14 +122,16 @@ function YouTubeEngine({ videoId, volume, muted, ctrl, onState, onEnded }) {
         videoId,
         width: '100%',
         height: '100%',
-        playerVars: { autoplay: 1, controls: 0, rel: 0, modestbranding: 1, playsinline: 1, disablekb: 1, fs: 0, iv_load_policy: 3 },
+        playerVars: { autoplay: 1, cc_load_policy: 0, controls: 0, rel: 0, modestbranding: 1, playsinline: 1, disablekb: 1, fs: 0, iv_load_policy: 3 },
         events: {
           onReady: (e) => {
+            noCaptions(e.target)
             applyVolume()
             e.target.playVideo()
             timer = setInterval(poll, 400)
           },
           onStateChange: (e) => {
+            if (e.data === YT.PlayerState.PLAYING) noCaptions(e.target) // captions module loads once playback starts
             if (e.data === YT.PlayerState.ENDED) endedRef.current?.()
             poll()
           },
@@ -209,11 +221,11 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
               {s.key === 'yt' ? 'YT' : 'V'}
             </button>
           ))}
-        {current && <a className="icon-btn" href={current.url} target="_blank" rel="noopener noreferrer" title="Open in a new tab">↗</a>}
-        <button className="icon-btn" onClick={onClose} title="Close player">✕</button>
+        {current && <a className="icon-btn" href={current.url} target="_blank" rel="noopener noreferrer" title="Open in a new tab"><Icon name="open" fallback="↗" /></a>}
+        <button className="icon-btn" onClick={onClose} title="Close player"><Icon name="close" fallback="✕" /></button>
       </div>
 
-      <div className="p-screen" onDoubleClick={toggleFull}>
+      <div className="p-screen" onDoubleClick={toggleFull} onClick={(e) => { if (!e.target.closest('.p-cover')) ctrl.current?.toggle() }}>
         {current?.key === 'yt' && ytId && (
           <YouTubeEngine key={current.url} videoId={ytId} volume={volume} muted={muted} ctrl={ctrl} onState={merge} onEnded={onNext} />
         )}
@@ -228,8 +240,8 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
         )}
         {hidden && !error && (
           <div className="p-cover">
-            <div>🙈 Video hidden — audio only</div>
-            <button className="btn small" onClick={() => setHidden(false)}>👁 Show video</button>
+            <div>Video hidden — audio only</div>
+            <button className="btn small" onClick={() => setHidden(false)}><Icon name="eye" fallback="👁" /> Show video</button>
           </div>
         )}
       </div>
@@ -252,10 +264,10 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
       </div>
 
       <div className="p-controls">
-        <button className="icon-btn big" onClick={onPrev} title="Previous in list">⏮</button>
-        <button className="icon-btn big" onClick={() => ctrl.current?.toggle()} title="Play / pause">{ps.playing ? '⏸' : '▶'}</button>
-        <button className="icon-btn big" onClick={onNext} title="Next in list">⏭</button>
-        <button className="icon-btn" onClick={() => setMuted(!muted)} title="Mute">{muted || volume === 0 ? '🔇' : '🔊'}</button>
+        <button className="icon-btn big" onClick={onPrev} title="Previous in list"><Icon name="prev" fallback="⏮" /></button>
+        <button className="icon-btn big" onClick={() => ctrl.current?.toggle()} title="Play / pause">{ps.playing ? <Icon name="pause" fallback="⏸" /> : <Icon name="play" fallback="▶" />}</button>
+        <button className="icon-btn big" onClick={onNext} title="Next in list"><Icon name="next" fallback="⏭" /></button>
+        <button className="icon-btn" onClick={() => setMuted(!muted)} title="Mute">{muted || volume === 0 ? <Icon name="mute" fallback="🔇" /> : <Icon name="volume" fallback="🔊" />}</button>
         <input
           className="p-vol"
           type="range"
@@ -268,8 +280,8 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
             setMuted(false)
           }}
         />
-        <button className="btn small" onClick={() => setHidden(!hidden)}>{hidden ? '👁 Show video' : '🙈 Hide video'}</button>
-        <button className="icon-btn big" onClick={toggleFull} title={full ? 'Exit full screen' : 'Full screen (or double-click the video)'}>{full ? '🗗' : '⛶'}</button>
+        <button className="btn small" onClick={() => setHidden(!hidden)}>{hidden ? <><Icon name="eye" fallback="👁" /> Show video</> : <><Icon name="eye-off" /> Hide video</>}</button>
+        <button className="icon-btn big" onClick={toggleFull} title={full ? 'Exit full screen' : 'Full screen (or double-click the video)'}>{full ? <Icon name="fullscreen-exit" fallback="🗗" /> : <Icon name="fullscreen" fallback="⛶" />}</button>
       </div>
     </div>
   )

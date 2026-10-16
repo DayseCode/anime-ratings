@@ -115,7 +115,7 @@ td.editable:hover:not(:has(.pill))::after { color: var(--muted); }
 .etag.rater { background: #4a3a14; color: #ffd37a; } .etag.profile { background: #3b2a6b; color: #cbb8ff; }
 
 /* ---- player ---- */
-.player { position: fixed; right: 16px; bottom: 16px; width: 380px; max-width: calc(100vw - 24px); background: #0b0d12; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,.65); z-index: 40; overflow: hidden; }
+.player { position: fixed; right: 16px; bottom: 16px; width: 400px; max-width: calc(100vw - 24px); background: #0b0d12; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,.65); z-index: 40; overflow: hidden; }
 .p-head { display: flex; align-items: center; gap: 4px; padding: 8px 8px 8px 12px; }
 .p-title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
 .src-btn { border: 1px solid var(--line); background: var(--panel2); color: var(--muted); border-radius: 5px; font-size: 11px; font-weight: 700; padding: 2px 7px; cursor: pointer; }
@@ -207,3 +207,14 @@ select { padding: 6px 8px; border-radius: 6px; border: 1px solid #ccc; font: inh
 .player.full .p-head { padding: 10px 16px; }
 .player.full .p-seek { padding: 10px 20px 0; }
 .player.full .p-controls { padding: 8px 18px 16px; }
+
+/* ---- custom player icons (public/icons/player/*.svg) ---- */
+.ico { width: 20px; height: 20px; display: block; object-fit: contain; pointer-events: none; }
+.icon-btn.big .ico { width: 26px; height: 26px; }
+.icon-btn, .btn.small { line-height: 0; }
+.icon-btn .ico-fallback, .btn.small .ico-fallback { line-height: 1.2; }
+.btn.small { display: inline-flex; align-items: center; gap: 6px; line-height: 1.3; }
+.btn.small .ico { width: 16px; height: 16px; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; }
+.icon-btn .ico-fallback { font-size: 15px; }
+.icon-btn.big .ico-fallback { font-size: 18px; }

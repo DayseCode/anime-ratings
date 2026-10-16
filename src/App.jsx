@@ -330,7 +330,7 @@ export default function App() {
               </button>
             ))}
             {isAdmin && (
-              <button className={onLogs ? 'on' : ''} onClick={() => setView('logs')}>📜 Logs</button>
+              <button className={onLogs ? 'on' : ''} onClick={() => setView('logs')}>Logs</button>
             )}
           </nav>
           <div className="user-area">
