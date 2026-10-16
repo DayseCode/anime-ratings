@@ -218,3 +218,80 @@ select { padding: 6px 8px; border-radius: 6px; border: 1px solid #ccc; font: inh
 .icon-btn { display: inline-flex; align-items: center; justify-content: center; }
 .icon-btn .ico-fallback { font-size: 15px; }
 .icon-btn.big .ico-fallback { font-size: 18px; }
+
+/* =====================================================================
+   PHONES / TABLETS (touch screens, any orientation) and narrow windows
+   - the page itself does not scroll; the header stays on top
+   - only the table area scrolls (both ways), header row + 3 columns stay locked
+   - popups become full-width sheets, so they can never go off-screen
+   ===================================================================== */
+.table-scroll { display: contents; }
+.mob-only { display: none; }
+.desk-only { display: contents; }
+.lbl { display: inline; }
+.short { display: none; }
+
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  :root { --w-num: 30px; --w-title: 132px; --w-links: 44px; }
+  html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+  .app { width: 100%; min-width: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; padding-bottom: 0; }
+
+  .sticky-head { position: static; width: 100%; flex: none; z-index: auto; padding: 0 8px 6px; }
+  .vw { position: static; width: 100%; }
+  .table-scroll { display: block; flex: 1; min-height: 0; overflow: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; margin-top: 6px; }
+  .table-wrap { margin: 0; border-left: 0; border-right: 0; }
+  thead th { top: 0; }
+  .table-scroll .more { position: sticky; left: 0; width: 100%; padding: 14px 0 24px; }
+
+  /* compact header: tabs on the left, online + menu on the right */
+  .desk-only, .who { display: none; }
+  .mob-only { display: block; }
+  .topbar { flex-wrap: nowrap; gap: 4px; }
+  .tabs { flex: 1; min-width: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs button { white-space: nowrap; padding: 10px 10px 8px; font-size: 14px; }
+  .count { display: none; }
+  .user-area { flex: none; flex-wrap: nowrap; gap: 6px; padding: 4px 0; }
+  .user-area .btn, .cols .btn { padding: 6px 10px; }
+  .lbl { display: none; }
+  .banner { font-size: 12px; padding: 6px 10px; }
+  .banner.soft { display: none; }
+
+  /* one-line toolbar: search + "Unrated" + Columns */
+  .toolbar { flex-wrap: nowrap; gap: 8px; margin-top: 6px; }
+  .toolbar .muted { display: none; }
+  .search { flex: 1; min-width: 0; width: auto; padding: 7px 10px; }
+  .check { white-space: nowrap; font-size: 13px; }
+  .check .long { display: none; }
+  .check .short { display: inline; }
+  .toolbar-right { margin-left: 0; }
+  .logs .toolbar { flex-wrap: wrap; }
+
+  /* popups: full-width sheet right under the header (never off-screen) */
+  .online-pop, .cols-pop, .pop-sheet {
+    position: fixed; left: 8px; right: 8px; top: calc(var(--head-h) + 4px); width: auto; min-width: 0;
+    max-height: calc(100vh - var(--head-h) - 16px); max-height: calc(100dvh - var(--head-h) - 16px);
+    z-index: 60;
+  }
+  .pop-sheet { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.5); display: flex; flex-direction: column; gap: 8px; }
+  .um-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--muted); padding-bottom: 4px; }
+
+  /* table: smaller, only the play button in the Links column */
+  th, td { padding: 5px 6px; font-size: 13px; }
+  .links .lk { display: none; }
+  .play-btn { margin-right: 0; width: 30px; height: 26px; }
+  .score { min-width: 56px; }
+  .pill { min-width: 36px; padding: 2px 4px; }
+  .title-in .edit { padding: 2px 2px; }
+
+  /* 16px inputs: iOS would zoom the whole page in on smaller ones */
+  .search, .score-input, .modal input, .modal select { font-size: 16px; }
+  .score-input { width: 56px; }
+
+  /* modals / player */
+  .overlay { padding: 8px; }
+  .modal { max-height: 94vh; max-height: 94dvh; }
+  .player { right: 8px; bottom: 8px; width: min(380px, calc(100vw - 16px)); }
+  .player:not(.full) .p-screen { max-height: 40vh; max-height: 40dvh; }
+  .p-controls { flex-wrap: wrap; row-gap: 4px; }
+}

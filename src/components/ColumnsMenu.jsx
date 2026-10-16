@@ -38,7 +38,7 @@ export default function ColumnsMenu({ items, hidden, onToggle, onMove, onReset }
   return (
     <div className="cols" ref={ref}>
       <button className={`btn ${open ? 'open' : ''}`} onClick={() => setOpen((o) => !o)}>
-        Columns ({shown}/{items.length})
+        Columns<span className="lbl"> ({shown}/{items.length})</span>
       </button>
       {open && (
         <div className="cols-pop">

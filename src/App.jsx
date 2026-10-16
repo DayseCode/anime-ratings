@@ -9,6 +9,7 @@ import OnlineButton from './components/OnlineButton.jsx'
 import LogsPage from './components/LogsPage.jsx'
 import Player from './components/Player.jsx'
 import ColumnsMenu from './components/ColumnsMenu.jsx'
+import UserMenu from './components/UserMenu.jsx'
 
 const PAGE = 200
 
@@ -335,6 +336,16 @@ export default function App() {
           </nav>
           <div className="user-area">
             <OnlineButton online={online} myKey={userId ?? guestKey.current} />
+            <UserMenu
+              session={session}
+              name={displayName}
+              columnName={myRater?.name}
+              isAdmin={isAdmin}
+              onAdmin={() => setShowAdmin(true)}
+              onLogin={() => setShowAuth(true)}
+              onLogout={() => supabase.auth.signOut()}
+            />
+            <div className="desk-only">
             {session ? (
               <>
                 <span className="who">
@@ -348,6 +359,7 @@ export default function App() {
             ) : (
               <button className="btn primary" onClick={() => setShowAuth(true)}>Log in / Sign up</button>
             )}
+            </div>
           </div>
         </header>
 
@@ -363,7 +375,9 @@ export default function App() {
             <input className="search" placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} />
             {myRaterId && (
               <label className="check">
-                <input type="checkbox" checked={onlyUnrated} onChange={(e) => setOnlyUnrated(e.target.checked)} /> Only songs I haven’t rated
+                <input type="checkbox" checked={onlyUnrated} onChange={(e) => setOnlyUnrated(e.target.checked)} />
+                <span className="long">Only songs I haven’t rated</span>
+                <span className="short">Unrated</span>
               </label>
             )}
             {sort.key && <button className="btn small" onClick={() => setSort({ key: null, dir: 'desc' })}>Reset sort</button>}
@@ -375,6 +389,7 @@ export default function App() {
         )}
       </div>
 
+      <div className="table-scroll">
       {onLogs ? (
         <LogsPage />
       ) : loading ? (
@@ -402,6 +417,7 @@ export default function App() {
           )}
         </>
       )}
+      </div>
 
       {track && <Player track={track} onClose={closePlayer} onNext={next} onPrev={prev} onSource={setSource} />}
 

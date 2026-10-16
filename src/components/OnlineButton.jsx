@@ -17,7 +17,7 @@ export default function OnlineButton({ online, myKey }) {
   return (
     <div className="online" ref={ref}>
       <button className="btn" onClick={() => setOpen((o) => !o)} title="Who is online">
-        <span className="dot" /> {online.length} online
+        <span className="dot" /> {online.length}<span className="lbl"> online</span>
       </button>
       {open && (
         <div className="online-pop">
