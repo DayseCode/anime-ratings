@@ -8,6 +8,7 @@ import EditSongModal from './components/EditSongModal.jsx'
 import OnlineButton from './components/OnlineButton.jsx'
 import LogsPage from './components/LogsPage.jsx'
 import Player from './components/Player.jsx'
+import ColumnsMenu from './components/ColumnsMenu.jsx'
 
 const PAGE = 200
 
@@ -97,7 +98,7 @@ export default function App() {
     Promise.all([reloadRaters(), ...KINDS.map((k) => reloadKind(k.key))]).then(() => setLoading(false))
   }, [reloadRaters, reloadKind])
 
-  const myRater = useMemo(() => raters.find((r) => r.user_id === userId) ?? null, [raters, userId])
+  const myRater = useMemo(() => (userId ? raters.find((r) => r.user_id === userId) ?? null : null), [raters, userId])
   const myRaterId = myRater?.id ?? null
 
   /* ---------- who is online (Supabase Realtime presence) ---------- */
@@ -138,6 +139,8 @@ export default function App() {
   /* ---------- actions ---------- */
   const saveScore = useCallback(
     async (songId, raterId, value) => {
+      // guests and users without their own column can never write anything
+      if (!userId || (!isAdmin && raterId !== myRaterId)) return
       setData((d) => ({
         ...d,
         [tab]: d[tab].map((s) => {
@@ -159,13 +162,13 @@ export default function App() {
         reloadKind(tab)
       }
     },
-    [tab, notify, reloadKind]
+    [tab, notify, reloadKind, userId, isAdmin, myRaterId]
   )
 
   // returns true when the song was deleted
   const deleteSong = useCallback(
     async (song) => {
-      if (!confirm(`Delete "${song.title}${song.song ? ' - ' + song.song : ''}" and all its scores?`)) return false
+      if (!confirm(`Delete "${song.title}${song.song ? ' – ' + song.song : ''}" and all its scores?`)) return false
       const { error } = await supabase.from('songs').delete().eq('id', song.id)
       if (error) {
         notify(error.message)
@@ -195,6 +198,59 @@ export default function App() {
   }, [])
 
   const openEdit = useCallback((song) => setEditing(song), [])
+
+  /* ---------- column visibility / order (saved in this browser only) ---------- */
+  const [colCfg, setColCfg] = useState(() => {
+    try {
+      const c = JSON.parse(localStorage.getItem('table.columns.v1'))
+      return { order: c?.order ?? [], hidden: c?.hidden ?? [] }
+    } catch {
+      return { order: [], hidden: [] }
+    }
+  })
+  useEffect(() => {
+    try { localStorage.setItem('table.columns.v1', JSON.stringify(colCfg)) } catch { /* ignore */ }
+  }, [colCfg])
+
+  const raterById = useMemo(() => Object.fromEntries(raters.map((r) => [r.id, r])), [raters])
+  const orderedKeys = useMemo(() => {
+    const master = ['author', 'song', 'avg', ...raters.map((r) => `r:${r.id}`)]
+    const valid = new Set(master)
+    const saved = colCfg.order.filter((k) => valid.has(k))
+    return [...saved, ...master.filter((k) => !saved.includes(k))]
+  }, [raters, colCfg.order])
+  const hiddenSet = useMemo(() => new Set(colCfg.hidden), [colCfg.hidden])
+  const menuItems = useMemo(
+    () =>
+      orderedKeys
+        .filter((k) => tab === 'INSERT' || (k !== 'author' && k !== 'song'))
+        .map((k) => ({
+          key: k,
+          label: k === 'author' ? 'Author' : k === 'song' ? 'Song' : k === 'avg' ? 'Avg' : raterById[k.slice(2)]?.name ?? k,
+          mine: myRaterId != null && k === `r:${myRaterId}`,
+        })),
+    [orderedKeys, tab, raterById, myRaterId]
+  )
+  const columns = useMemo(() => menuItems.filter((i) => !hiddenSet.has(i.key)).map((i) => i.key), [menuItems, hiddenSet])
+
+  const toggleColumn = useCallback((key) => {
+    setColCfg((c) => ({ ...c, hidden: c.hidden.includes(key) ? c.hidden.filter((k) => k !== key) : [...c.hidden, key] }))
+  }, [])
+  const moveColumn = useCallback(
+    (from, over) => {
+      setColCfg((c) => {
+        const arr = [...orderedKeys]
+        const a = arr.indexOf(from)
+        const b = arr.indexOf(over)
+        if (a < 0 || b < 0) return c
+        arr.splice(a, 1)
+        arr.splice(b, 0, from)
+        return { ...c, order: arr }
+      })
+    },
+    [orderedKeys]
+  )
+  const resetColumns = useCallback(() => setColCfg({ order: [], hidden: [] }), [])
 
   /* ---------- sort (local to this browser) ---------- */
   const onSort = useCallback((key) => {
@@ -274,7 +330,7 @@ export default function App() {
               </button>
             ))}
             {isAdmin && (
-              <button className={onLogs ? 'on' : ''} onClick={() => setView('logs')}>Logs</button>
+              <button className={onLogs ? 'on' : ''} onClick={() => setView('logs')}>📜 Logs</button>
             )}
           </nav>
           <div className="user-area">
@@ -312,6 +368,9 @@ export default function App() {
             )}
             {sort.key && <button className="btn small" onClick={() => setSort({ key: null, dir: 'desc' })}>Reset sort</button>}
             <span className="muted">{rows.length} shown</span>
+            <div className="toolbar-right">
+              <ColumnsMenu items={menuItems} hidden={hiddenSet} onToggle={toggleColumn} onMove={moveColumn} onReset={resetColumns} />
+            </div>
           </div>
         )}
       </div>
@@ -325,7 +384,8 @@ export default function App() {
           <SongTable
             songs={visible}
             kind={tab}
-            raters={raters}
+            columns={columns}
+            raterById={raterById}
             myRaterId={myRaterId}
             isAdmin={isAdmin}
             playingId={track?.song.id}

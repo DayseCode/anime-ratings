@@ -186,3 +186,24 @@ select { padding: 6px 8px; border-radius: 6px; border: 1px solid #ccc; font: inh
   .player { right: 8px; bottom: 8px; width: calc(100vw - 16px); }
   .who { display: none; }
 }
+
+/* ---- columns menu ---- */
+.toolbar-right { margin-left: auto; }
+.cols { position: relative; }
+.cols .btn.open { border-color: var(--accent); }
+.cols-pop { position: absolute; right: 0; top: calc(100% + 6px); width: 280px; max-height: min(65vh, 560px); overflow: auto; background: #14161d; border: 1px solid var(--line); border-radius: 10px; padding: 6px; box-shadow: 0 12px 34px rgba(0,0,0,.6); z-index: 30; }
+.cols-actions { display: flex; justify-content: flex-end; padding: 2px 4px 6px; }
+.cols-row { display: flex; align-items: center; justify-content: space-between; border-radius: 6px; padding: 2px 6px; }
+.cols-row:hover { background: rgba(255,255,255,.05); }
+.cols-row.dragging { background: rgba(108,140,255,.25); }
+.cols-row label { flex: 1; display: flex; align-items: center; gap: 10px; padding: 8px 4px; cursor: pointer; }
+.cols-row input { width: 16px; height: 16px; accent-color: var(--accent); }
+.grip { cursor: grab; color: var(--muted); font-size: 22px; line-height: 1; padding: 4px 8px; touch-action: none; user-select: none; }
+.cols-row.dragging .grip { cursor: grabbing; color: var(--text); }
+
+/* ---- player full screen ---- */
+.player.full { position: fixed; inset: 0; width: 100vw; max-width: none; height: 100vh; height: 100dvh; border-radius: 0; border: 0; display: flex; flex-direction: column; z-index: 100; }
+.player.full .p-screen { flex: 1; aspect-ratio: auto; min-height: 0; }
+.player.full .p-head { padding: 10px 16px; }
+.player.full .p-seek { padding: 10px 20px 0; }
+.player.full .p-controls { padding: 8px 18px 16px; }

@@ -43,7 +43,7 @@ export default function LogsPage() {
   return (
     <div className="logs vw">
       <div className="toolbar">
-        <h2 className="logs-title">Change log</h2>
+        <h2 className="logs-title">📜 Change log</h2>
         <select value={entity} onChange={(e) => setEntity(e.target.value)} className="dark-select">
           {ENTITIES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
         </select>

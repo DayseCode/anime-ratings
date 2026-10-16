@@ -50,7 +50,7 @@ const ScoreCell = memo(function ScoreCell({ songId, raterId, value, editable, mi
   )
 })
 
-const Row = memo(function Row({ song, index, isInsert, raters, myRaterId, isAdmin, playing, onSave, onEdit, onPlay }) {
+const Row = memo(function Row({ song, index, columns, raterById, myRaterId, isAdmin, playing, onSave, onEdit, onPlay }) {
   const playable = song.youtube_url || song.vlink_url
   return (
     <tr className={playing ? 'playing' : ''}>
@@ -68,28 +68,36 @@ const Row = memo(function Row({ song, index, isInsert, raters, myRaterId, isAdmi
         {song.youtube_url && <a className="lk yt" href={song.youtube_url} target="_blank" rel="noopener noreferrer">YT</a>}
         {song.vlink_url && <a className="lk vl" href={song.vlink_url} target="_blank" rel="noopener noreferrer">V</a>}
       </td>
-      {isInsert && <td className="cell txt">{song.author}</td>}
-      {isInsert && <td className="cell txt">{song.song}</td>}
-      <td className="cell avg" title={`${song.n} score(s)`}>
-        {song.avg != null ? song.avg.toFixed(2) : '—'}
-      </td>
-      {raters.map((r) => (
-        <ScoreCell
-          key={r.id}
-          songId={song.id}
-          raterId={r.id}
-          value={song.scores[r.id] ?? null}
-          mine={r.id === myRaterId}
-          editable={isAdmin || r.id === myRaterId}
-          onSave={onSave}
-        />
-      ))}
+      {columns.map((k) => {
+        if (k === 'author') return <td key={k} className="cell txt">{song.author}</td>
+        if (k === 'song') return <td key={k} className="cell txt">{song.song}</td>
+        if (k === 'avg') {
+          return (
+            <td key={k} className="cell avg" title={`${song.n} score(s)`}>
+              {song.avg != null ? song.avg.toFixed(2) : '—'}
+            </td>
+          )
+        }
+        const r = raterById[k.slice(2)]
+        if (!r) return null
+        const mine = myRaterId != null && r.id === myRaterId
+        return (
+          <ScoreCell
+            key={k}
+            songId={song.id}
+            raterId={r.id}
+            value={song.scores[r.id] ?? null}
+            mine={mine}
+            editable={isAdmin || mine}
+            onSave={onSave}
+          />
+        )
+      })}
     </tr>
   )
 })
 
-export default function SongTable({ songs, kind, raters, myRaterId, isAdmin, playingId, sort, onSort, onSave, onEdit, onPlay }) {
-  const isInsert = kind === 'INSERT'
+export default function SongTable({ songs, kind, columns, raterById, myRaterId, isAdmin, playingId, sort, onSort, onSave, onEdit, onPlay }) {
   const arrow = (key) => (sort.key === key ? (sort.dir === 'asc' ? ' ▲' : ' ▼') : '')
 
   return (
@@ -98,21 +106,26 @@ export default function SongTable({ songs, kind, raters, myRaterId, isAdmin, pla
         <thead>
           <tr>
             <th className="num">#</th>
-            <th className="title sortable" onClick={() => onSort('title')}>{isInsert ? 'Title' : 'Name'}{arrow('title')}</th>
+            <th className="title sortable" onClick={() => onSort('title')}>{kind === 'INSERT' ? 'Title' : 'Name'}{arrow('title')}</th>
             <th className="links">Links</th>
-            {isInsert && <th className="txt sortable" onClick={() => onSort('author')}>Author{arrow('author')}</th>}
-            {isInsert && <th className="txt sortable" onClick={() => onSort('song')}>Song{arrow('song')}</th>}
-            <th className="avg sortable" onClick={() => onSort('avg')}>Avg{arrow('avg')}</th>
-            {raters.map((r) => (
-              <th
-                key={r.id}
-                className={`score sortable ${r.id === myRaterId ? 'mine' : ''}`}
-                onClick={() => onSort(`r:${r.id}`)}
-                title={`Sort by ${r.name}`}
-              >
-                {r.name}{arrow(`r:${r.id}`)}
-              </th>
-            ))}
+            {columns.map((k) => {
+              if (k === 'author' || k === 'song') {
+                return <th key={k} className="txt sortable" onClick={() => onSort(k)}>{k === 'author' ? 'Author' : 'Song'}{arrow(k)}</th>
+              }
+              if (k === 'avg') return <th key={k} className="avg sortable" onClick={() => onSort('avg')}>Avg{arrow('avg')}</th>
+              const r = raterById[k.slice(2)]
+              if (!r) return null
+              return (
+                <th
+                  key={k}
+                  className={`score sortable ${myRaterId != null && r.id === myRaterId ? 'mine' : ''}`}
+                  onClick={() => onSort(k)}
+                  title={`Sort by ${r.name}`}
+                >
+                  {r.name}{arrow(k)}
+                </th>
+              )
+            })}
           </tr>
         </thead>
         <tbody>
@@ -121,8 +134,8 @@ export default function SongTable({ songs, kind, raters, myRaterId, isAdmin, pla
               key={s.id}
               song={s}
               index={i + 1}
-              isInsert={isInsert}
-              raters={raters}
+              columns={columns}
+              raterById={raterById}
               myRaterId={myRaterId}
               isAdmin={isAdmin}
               playing={s.id === playingId}

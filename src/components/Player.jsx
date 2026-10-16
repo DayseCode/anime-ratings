@@ -155,10 +155,35 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
   const current = sources.find((s) => s.key === src) || sources[0]
 
   const [hidden, setHidden] = usePersisted('player.hideVideo', false)
-  const [volume, setVolume] = usePersisted('player.volume', 0.5)
+  const [volume, setVolume] = usePersisted('player.volume', 0.8)
   const [muted, setMuted] = usePersisted('player.muted', false)
   const [ps, setPs] = useState({ playing: false, time: 0, duration: 0, error: null })
   const ctrl = useRef(null)
+  const rootRef = useRef(null)
+  const [full, setFull] = useState(false)
+
+  // Real browser fullscreen when available, otherwise a "fill the window" fallback (e.g. iPhone)
+  const toggleFull = async () => {
+    if (full) {
+      if (document.fullscreenElement) await document.exitFullscreen().catch(() => {})
+      setFull(false)
+    } else {
+      setFull(true)
+      try { await rootRef.current?.requestFullscreen?.() } catch { /* fallback stays active */ }
+    }
+  }
+  useEffect(() => {
+    const onChange = () => { if (!document.fullscreenElement) setFull(false) }
+    const onKey = (e) => { if (e.key === 'Escape' && !document.fullscreenElement) setFull(false) }
+    document.addEventListener('fullscreenchange', onChange)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange)
+      document.removeEventListener('keydown', onKey)
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
+    }
+  }, [])
+
   const merge = useCallback((p) => setPs((s) => ({ ...s, ...p })), [])
 
   useEffect(() => {
@@ -175,7 +200,7 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
   const error = ps.error || (current?.key === 'yt' && !ytId ? 'Cannot read this YouTube link.' : null)
 
   return (
-    <div className="player">
+    <div className={`player ${full ? 'full' : ''}`} ref={rootRef}>
       <div className="p-head">
         <span className="p-title" title={title}>{title}</span>
         {sources.length > 1 &&
@@ -188,7 +213,7 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
         <button className="icon-btn" onClick={onClose} title="Close player">✕</button>
       </div>
 
-      <div className="p-screen">
+      <div className="p-screen" onDoubleClick={toggleFull}>
         {current?.key === 'yt' && ytId && (
           <YouTubeEngine key={current.url} videoId={ytId} volume={volume} muted={muted} ctrl={ctrl} onState={merge} onEnded={onNext} />
         )}
@@ -203,7 +228,7 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
         )}
         {hidden && !error && (
           <div className="p-cover">
-            <div>Video hidden — audio only</div>
+            <div>🙈 Video hidden — audio only</div>
             <button className="btn small" onClick={() => setHidden(false)}>👁 Show video</button>
           </div>
         )}
@@ -243,7 +268,8 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
             setMuted(false)
           }}
         />
-        <button className="btn small" onClick={() => setHidden(!hidden)}>{hidden ? '👁 Show video' : 'Hide video'}</button>
+        <button className="btn small" onClick={() => setHidden(!hidden)}>{hidden ? '👁 Show video' : '🙈 Hide video'}</button>
+        <button className="icon-btn big" onClick={toggleFull} title={full ? 'Exit full screen' : 'Full screen (or double-click the video)'}>{full ? '🗗' : '⛶'}</button>
       </div>
     </div>
   )
