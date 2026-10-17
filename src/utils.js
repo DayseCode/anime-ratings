@@ -88,6 +88,10 @@ export function pickSource(song, pref) {
   return song.youtube_url ? 'yt' : 'v'
 }
 
+// natural text order: "Bleach [OP2]" comes before "Bleach [OP10]"
+const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
+export const compareText = (a, b) => collator.compare(a ?? '', b ?? '')
+
 export const fmtTime = (t) => {
   if (!Number.isFinite(t) || t < 0) t = 0
   const m = Math.floor(t / 60)

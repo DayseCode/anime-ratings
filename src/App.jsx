@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { configured, supabase } from './supabase.js'
-import { KINDS, SONG_COLUMNS, applyScoreChanges, applySongEvent, fetchAllSongs, normalizeSong, pickSource, stats } from './utils.js'
+import { KINDS, SONG_COLUMNS, applyScoreChanges, applySongEvent, compareText, fetchAllSongs, normalizeSong, pickSource, stats } from './utils.js'
 import SongTable from './components/SongTable.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import AdminModal from './components/AdminModal.jsx'
@@ -13,6 +13,7 @@ import AccountMenu from './components/AccountMenu.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
 
 const PAGE = 200
+const DEFAULT_SORT = { key: 'title', dir: 'asc' } // A-Z by name, "OP2" before "OP10"
 
 export default function App() {
   const [session, setSession] = useState(null)
@@ -24,7 +25,7 @@ export default function App() {
   const [tab, setTab] = useState('OP')
   const [search, setSearch] = useState('')
   const [onlyUnrated, setOnlyUnrated] = useState(false)
-  const [sort, setSort] = useState({ key: null, dir: 'desc' }) // user-side only, never saved
+  const [sort, setSort] = useState(DEFAULT_SORT) // user-side only, never saved
   const [showAll, setShowAll] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const [showAdmin, setShowAdmin] = useState(false)
@@ -194,13 +195,13 @@ export default function App() {
 
   /* ---------- actions ---------- */
   const saveScore = useCallback(
-    async (songId, raterId, value) => {
+    async (songId, raterId, value, kind = tab) => {
       // guests and users without their own column can never write anything
       if (!userId || (!isAdmin && raterId !== myRaterId)) return
       recentLocal.current.set(`${songId}:${raterId}`, { value: value ?? null, t: Date.now() })
       setData((d) => ({
         ...d,
-        [tab]: d[tab].map((s) => {
+        [kind]: d[kind].map((s) => {
           if (s.id !== songId) return s
           const scores = { ...s.scores }
           if (value == null) delete scores[raterId]
@@ -216,7 +217,7 @@ export default function App() {
               .upsert({ song_id: songId, rater_id: raterId, score: value, updated_at: new Date().toISOString() }, { onConflict: 'song_id,rater_id' })
       if (error) {
         notify(`Not saved: ${error.message}`)
-        reloadKind(tab)
+        reloadKind(kind)
       }
     },
     [tab, notify, reloadKind, userId, isAdmin, myRaterId]
@@ -331,12 +332,15 @@ export default function App() {
     if (onlyUnrated && myRaterId) list = list.filter((s) => s.scores[myRaterId] == null)
     if (sort.key) {
       const mul = sort.dir === 'asc' ? 1 : -1
-      const val = (s) => {
-        if (sort.key === 'avg') return s.avg
-        if (sort.key.startsWith('r:')) return s.scores[sort.key.slice(2)] ?? null
-        return (s[sort.key] ?? '').toString().toLowerCase()
-      }
+      const isText = sort.key === 'title' || sort.key === 'author' || sort.key === 'song'
+      const val = (s) => (sort.key === 'avg' ? s.avg : s.scores[sort.key.slice(2)] ?? null)
       list = [...list].sort((a, b) => {
+        if (isText) {
+          const t1 = a[sort.key] ?? '', t2 = b[sort.key] ?? ''
+          if (!t1 && t2) return 1 // empty values always last
+          if (t1 && !t2) return -1
+          return (compareText(t1, t2) || compareText(a.song, b.song) || a.id - b.id) * mul
+        }
         const x = val(a), y = val(b)
         if (x == null && y == null) return 0
         if (x == null) return 1
@@ -386,6 +390,41 @@ export default function App() {
     })
   }, [])
   const next = useCallback(() => step(1), [step])
+  const trackRef = useRef(null)
+  trackRef.current = track
+  const liveSong = useMemo(() => {
+    if (!track) return null
+    for (const k of Object.keys(data)) {
+      const s = data[k].find((x) => x.id === track.song.id)
+      if (s) return s
+    }
+    return track.song
+  }, [data, track])
+
+  // score the song that is playing, in my own column (null = remove my score)
+  const rateCurrent = useCallback(
+    (value) => {
+      const t = trackRef.current
+      if (t && myRaterId != null) saveScore(t.song.id, myRaterId, value, t.song.kind)
+    },
+    [saveScore, myRaterId]
+  )
+
+  // jump to the next song (in the list you are looking at) that I have not rated; returns false if none
+  const nextUnrated = useCallback(() => {
+    if (myRaterId == null) return false
+    const list = rowsRef.current.filter((s) => s.youtube_url || s.vlink_url)
+    const cur = trackRef.current?.song.id
+    const i = list.findIndex((s) => s.id === cur)
+    for (let k = 1; k <= list.length; k++) {
+      const s = list[(i + k + list.length) % list.length]
+      if (s.id !== cur && s.scores[myRaterId] == null) {
+        setTrack({ song: s, src: pickSource(s, prefRef.current) })
+        return true
+      }
+    }
+    return false
+  }, [myRaterId])
   const prev = useCallback(() => step(-1), [step])
   const setSource = useCallback((src) => setTrack((t) => (t ? { ...t, src } : t)), [])
   const closePlayer = useCallback(() => setTrack(null), [])
@@ -453,7 +492,9 @@ export default function App() {
                 <span className="short">Unrated</span>
               </label>
             )}
-            {sort.key && <button className="btn small" onClick={() => setSort({ key: null, dir: 'desc' })}>Reset sort</button>}
+            {(sort.key !== DEFAULT_SORT.key || sort.dir !== DEFAULT_SORT.dir) && (
+              <button className="btn small" onClick={() => setSort(DEFAULT_SORT)}>Reset sort</button>
+            )}
             <span className="muted">{rows.length} shown</span>
             <div className="toolbar-right">
               <ColumnsMenu
@@ -500,7 +541,23 @@ export default function App() {
       )}
       </div>
 
-      {track && <Player track={track} onClose={closePlayer} onNext={next} onPrev={prev} onSource={setSource} />}
+      {track && (
+        <Player
+          track={track}
+          liveSong={liveSong}
+          rating={{
+            raterId: myRaterId,
+            column: myRater?.name,
+            hint: session ? 'Ask an admin to link your account to a rating column to rate songs.' : 'Log in to rate songs.',
+            onRate: rateCurrent,
+            onNextUnrated: nextUnrated,
+          }}
+          onClose={closePlayer}
+          onNext={next}
+          onPrev={prev}
+          onSource={setSource}
+        />
+      )}
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {showAdmin && isAdmin && (

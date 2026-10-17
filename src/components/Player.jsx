@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fmtTime, playableSources, youtubeId } from '../utils.js'
 import Icon from './Icon.jsx'
+import RatePanel from './RatePanel.jsx'
 
 /* remember small preferences (hidden video, volume) in this browser */
 function usePersisted(key, initial) {
@@ -161,7 +162,7 @@ function YouTubeEngine({ videoId, volume, muted, ctrl, onState, onEnded }) {
 }
 
 /* ---------- the player panel ---------- */
-export default function Player({ track, onClose, onNext, onPrev, onSource }) {
+export default function Player({ track, liveSong, rating, onClose, onNext, onPrev, onSource }) {
   const { song, src } = track
   const sources = playableSources(song)
   const current = sources.find((s) => s.key === src) || sources[0]
@@ -245,6 +246,8 @@ export default function Player({ track, onClose, onNext, onPrev, onSource }) {
           </div>
         )}
       </div>
+
+      {full && <RatePanel song={liveSong ?? song} {...rating} />}
 
       <div className="p-seek">
         <span className="p-time">{fmtTime(ps.time)}</span>
