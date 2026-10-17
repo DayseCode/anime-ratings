@@ -3,6 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      try { document.documentElement.dataset.theme = localStorage.getItem('theme') === 'light' ? 'light' : 'dark' }
+      catch (e) { document.documentElement.dataset.theme = 'dark' }
+    </script>
     <title>Anime OP / ED / Insert Ratings</title>
     <link rel="icon" type="image/x-icon" href="/favlogo.svg" />
   </head>

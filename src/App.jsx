@@ -9,7 +9,8 @@ import OnlineButton from './components/OnlineButton.jsx'
 import LogsPage from './components/LogsPage.jsx'
 import Player from './components/Player.jsx'
 import ColumnsMenu from './components/ColumnsMenu.jsx'
-import UserMenu from './components/UserMenu.jsx'
+import AccountMenu from './components/AccountMenu.jsx'
+import ThemeToggle from './components/ThemeToggle.jsx'
 
 const PAGE = 200
 
@@ -32,6 +33,14 @@ export default function App() {
   const [online, setOnline] = useState([])
   const [toast, setToast] = useState(null)
   const toastTimer = useRef()
+
+  /* ---------- theme (dark / light), remembered in this browser ---------- */
+  const [theme, setTheme] = useState(() => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'))
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    try { localStorage.setItem('theme', theme) } catch { /* ignore */ }
+  }, [theme])
+  const toggleTheme = useCallback(() => setTheme((t) => (t === 'dark' ? 'light' : 'dark')), [])
   const headRef = useRef(null)
   const recentLocal = useRef(new Map()) // my own recent edits (to ignore their echo)
   const pendingLive = useRef([]) // score changes from other people, applied once per second
@@ -363,7 +372,6 @@ export default function App() {
     )
   }
 
-  const displayName = profile?.username || session?.user?.email
   const onLogs = view === 'logs' && isAdmin
   const visible = showAll ? rows : rows.slice(0, PAGE)
 
@@ -383,30 +391,17 @@ export default function App() {
           </nav>
           <div className="user-area">
             <OnlineButton online={online} myKey={userId ?? guestKey.current} />
-            <UserMenu
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+            <AccountMenu
               session={session}
-              name={displayName}
+              name={profile?.username}
+              email={session?.user?.email}
               columnName={myRater?.name}
               isAdmin={isAdmin}
               onAdmin={() => setShowAdmin(true)}
               onLogin={() => setShowAuth(true)}
               onLogout={() => supabase.auth.signOut()}
             />
-            <div className="desk-only">
-            {session ? (
-              <>
-                <span className="who">
-                  {displayName}
-                  {myRater && <span className="chip">{myRater.name}</span>}
-                  {isAdmin && <span className="chip admin">admin</span>}
-                </span>
-                {isAdmin && <button className="btn" onClick={() => setShowAdmin(true)}>⚙ Admin panel</button>}
-                <button className="btn" onClick={() => supabase.auth.signOut()}>Log out</button>
-              </>
-            ) : (
-              <button className="btn primary" onClick={() => setShowAuth(true)}>Log in / Sign up</button>
-            )}
-            </div>
           </div>
         </header>
 

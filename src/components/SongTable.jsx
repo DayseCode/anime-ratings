@@ -1,5 +1,5 @@
 import { memo, useRef, useState } from 'react'
-import { parseScore, scoreColor } from '../utils.js'
+import { parseScore, scoreHue } from '../utils.js'
 
 const ScoreCell = memo(function ScoreCell({ songId, raterId, value, editable, mine, onSave }) {
   const [editing, setEditing] = useState(false)
@@ -44,7 +44,7 @@ const ScoreCell = memo(function ScoreCell({ songId, raterId, value, editable, mi
   return (
     <td className={cls} onClick={start} title={editable ? 'Click to edit' : undefined}>
       {value != null ? (
-        <span className="pill" style={{ background: scoreColor(value) }}>{value.toFixed(1)}</span>
+        <span className="pill" style={{ '--h': scoreHue(value) }}>{value.toFixed(1)}</span>
       ) : null}
     </td>
   )
