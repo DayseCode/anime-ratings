@@ -412,3 +412,6 @@ table.users tr:last-child td { border-bottom: 0; }
   .player.full .p-seek { padding: 2px 0.8571rem 0; }
   .player.full .p-controls { padding: 0 0.8571rem 0.2857rem; }
 }
+
+/* on-screen keyboard: lift the whole full-screen player above it (--kb is set by Player.jsx) */
+.player.full { padding-bottom: var(--kb, 0px); }

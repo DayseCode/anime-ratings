@@ -197,6 +197,26 @@ export default function Player({ track, liveSong, rating, onClose, onNext, onPre
     }
   }, [])
 
+  // On phones the on-screen keyboard only shrinks the *visual* viewport, so a full-screen player
+  // would stay behind it. Measure the covered strip and pad the player by that much (--kb).
+  useEffect(() => {
+    const vv = window.visualViewport
+    const el = rootRef.current
+    if (!full || !vv || !el) return undefined
+    const apply = () => {
+      const covered = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))
+      el.style.setProperty('--kb', `${covered > 80 ? covered : 0}px`) // ignore tiny browser-bar changes
+    }
+    apply()
+    vv.addEventListener('resize', apply)
+    vv.addEventListener('scroll', apply)
+    return () => {
+      vv.removeEventListener('resize', apply)
+      vv.removeEventListener('scroll', apply)
+      el.style.removeProperty('--kb')
+    }
+  }, [full])
+
   const merge = useCallback((p) => setPs((s) => ({ ...s, ...p })), [])
 
   useEffect(() => {
