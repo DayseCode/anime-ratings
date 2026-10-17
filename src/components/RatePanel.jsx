@@ -21,7 +21,7 @@ export default function RatePanel({ song, raterId, column, hint, onRate, onNextU
 
   const commit = () => {
     const parsed = parseScore(text)
-    if (Number.isNaN(parsed)) return flash('Score must be a number from 0 to 10')
+    if (Number.isNaN(parsed)) return flash('Score must be a number from 1 to 10')
     if (parsed !== mine) onRate(parsed)
   }
 

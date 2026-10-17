@@ -35,7 +35,7 @@ export function parseScore(text) {
   const t = String(text).trim().replace(',', '.')
   if (t === '') return null
   const v = Number(t)
-  if (!Number.isFinite(v) || v < 0 || v > 10) return NaN
+  if (!Number.isFinite(v) || v < 1 || v > 10) return NaN
   return Math.round(v * 10) / 10
 }
 

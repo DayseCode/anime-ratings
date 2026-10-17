@@ -17,7 +17,7 @@ const ScoreCell = memo(function ScoreCell({ songId, raterId, value, editable, mi
     setEditing(false)
     if (cancelled.current) return
     const parsed = parseScore(text)
-    if (Number.isNaN(parsed)) return alert('Score must be a number from 0 to 10')
+    if (Number.isNaN(parsed)) return alert('Score must be a number from 1 to 10')
     if (parsed !== (value ?? null)) onSave(songId, raterId, parsed)
   }
 
