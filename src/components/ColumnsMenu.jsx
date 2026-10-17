@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 /* "Columns (10/23)" dropdown: tick to show/hide, drag the ≡ handle to reorder.
    Works with mouse and touch. The choice is saved in this browser only. */
-export default function ColumnsMenu({ items, hidden, onToggle, onMove, onReset }) {
+export default function ColumnsMenu({ items, hidden, onToggle, onMove, onReset, onOnlyMine, onShowAll }) {
   const [open, setOpen] = useState(false)
   const [dragKey, setDragKey] = useState(null)
   const ref = useRef(null)
@@ -43,7 +43,13 @@ export default function ColumnsMenu({ items, hidden, onToggle, onMove, onReset }
       {open && (
         <div className="cols-pop">
           <div className="cols-actions">
-            <button className="btn small" onClick={onReset}>Reset</button>
+            <div className="cols-actions-left">
+              {onOnlyMine && (
+                <button className="btn small" onClick={onOnlyMine} title="Hide everyone else's column">Only mine</button>
+              )}
+              <button className="btn small" onClick={onShowAll}>Show all</button>
+            </div>
+            <button className="btn small" onClick={onReset} title="Default order and visibility">Reset</button>
           </div>
           {items.map((it) => (
             <div key={it.key} data-colkey={it.key} className={`cols-row ${dragKey === it.key ? 'dragging' : ''}`}>

@@ -81,6 +81,13 @@ export function playableSources(song) {
   return list
 }
 
+// which link to play first: the preferred one if the song has it, otherwise whichever exists
+export function pickSource(song, pref) {
+  if (pref === 'v' && song.vlink_url) return 'v'
+  if (pref !== 'v' && song.youtube_url) return 'yt'
+  return song.youtube_url ? 'yt' : 'v'
+}
+
 export const fmtTime = (t) => {
   if (!Number.isFinite(t) || t < 0) t = 0
   const m = Math.floor(t / 60)

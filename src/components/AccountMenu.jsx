@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 /* One compact "avatar + name" button instead of nick + column + role + 2 buttons.
    Click it for the details, the Admin panel and Log out. */
-export default function AccountMenu({ session, name, email, columnName, isAdmin, onAdmin, onLogin, onLogout }) {
+export default function AccountMenu({ session, name, email, columnName, isAdmin, videoSource, onVideoSource, onAdmin, onLogin, onLogout }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -43,6 +43,13 @@ export default function AccountMenu({ session, name, email, columnName, isAdmin,
             <div><dt>Column</dt><dd>{columnName || 'not linked yet'}</dd></div>
             <div><dt>Role</dt><dd>{isAdmin ? <span className="chip admin">admin</span> : 'member'}</dd></div>
           </dl>
+          <div className="acct-pref">
+            <span>Preferred video source</span>
+            <div className="seg" role="group" aria-label="Preferred video source">
+              <button className={videoSource === 'yt' ? 'on' : ''} onClick={() => onVideoSource('yt')}>YouTube</button>
+              <button className={videoSource === 'v' ? 'on' : ''} onClick={() => onVideoSource('v')}>VLINK</button>
+            </div>
+          </div>
           {isAdmin && <button className="btn" onClick={run(onAdmin)}>Admin panel</button>}
           <button className="btn" onClick={run(onLogout)}>Log out</button>
         </div>

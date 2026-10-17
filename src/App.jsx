@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { configured, supabase } from './supabase.js'
-import { KINDS, SONG_COLUMNS, applyScoreChanges, applySongEvent, fetchAllSongs, normalizeSong, stats } from './utils.js'
+import { KINDS, SONG_COLUMNS, applyScoreChanges, applySongEvent, fetchAllSongs, normalizeSong, pickSource, stats } from './utils.js'
 import SongTable from './components/SongTable.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import AdminModal from './components/AdminModal.jsx'
@@ -308,6 +308,16 @@ export default function App() {
     [orderedKeys]
   )
   const resetColumns = useCallback(() => setColCfg({ order: [], hidden: [] }), [])
+  const showAllColumns = useCallback(() => setColCfg((c) => ({ ...c, hidden: [] })), [])
+  // hide every other person's column (Avg / Author / Song keep whatever state they have)
+  const onlyMyColumn = useCallback(
+    () =>
+      setColCfg((c) => ({
+        ...c,
+        hidden: [...c.hidden.filter((k) => !k.startsWith('r:')), ...raters.filter((r) => r.id !== myRaterId).map((r) => `r:${r.id}`)],
+      })),
+    [raters, myRaterId]
+  )
 
   /* ---------- sort (local to this browser) ---------- */
   const onSort = useCallback((key) => {
@@ -339,12 +349,31 @@ export default function App() {
 
   useEffect(() => setShowAll(false), [tab, search, onlyUnrated, sort])
 
+  /* ---------- preferred video source (saved in the account, works on every device) ---------- */
+  const metaSource = session?.user?.user_metadata?.video_source === 'v' ? 'v' : 'yt'
+  const [videoPref, setVideoPref] = useState(metaSource)
+  useEffect(() => setVideoPref(metaSource), [metaSource])
+  const prefRef = useRef(videoPref)
+  prefRef.current = videoPref
+  const changeVideoSource = useCallback(
+    async (value) => {
+      const before = prefRef.current
+      setVideoPref(value)
+      const { error } = await supabase.auth.updateUser({ data: { video_source: value } })
+      if (error) {
+        setVideoPref(before)
+        notify(`Not saved: ${error.message}`)
+      }
+    },
+    [notify]
+  )
+
   /* ---------- player ---------- */
   const rowsRef = useRef([])
   rowsRef.current = rows
 
   const playSong = useCallback((song) => {
-    setTrack({ song, src: song.youtube_url ? 'yt' : 'v' })
+    setTrack({ song, src: pickSource(song, prefRef.current) })
   }, [])
 
   const step = useCallback((dir) => {
@@ -353,7 +382,7 @@ export default function App() {
       const list = rowsRef.current.filter((s) => s.youtube_url || s.vlink_url)
       const i = list.findIndex((s) => s.id === t.song.id)
       const next = i === -1 ? list[dir > 0 ? 0 : list.length - 1] : list[i + dir]
-      return next ? { song: next, src: next.youtube_url ? 'yt' : 'v' } : t
+      return next ? { song: next, src: pickSource(next, prefRef.current) } : t
     })
   }, [])
   const next = useCallback(() => step(1), [step])
@@ -398,6 +427,8 @@ export default function App() {
               email={session?.user?.email}
               columnName={myRater?.name}
               isAdmin={isAdmin}
+              videoSource={videoPref}
+              onVideoSource={changeVideoSource}
               onAdmin={() => setShowAdmin(true)}
               onLogin={() => setShowAuth(true)}
               onLogout={() => supabase.auth.signOut()}
@@ -425,7 +456,15 @@ export default function App() {
             {sort.key && <button className="btn small" onClick={() => setSort({ key: null, dir: 'desc' })}>Reset sort</button>}
             <span className="muted">{rows.length} shown</span>
             <div className="toolbar-right">
-              <ColumnsMenu items={menuItems} hidden={hiddenSet} onToggle={toggleColumn} onMove={moveColumn} onReset={resetColumns} />
+              <ColumnsMenu
+                items={menuItems}
+                hidden={hiddenSet}
+                onToggle={toggleColumn}
+                onMove={moveColumn}
+                onReset={resetColumns}
+                onShowAll={showAllColumns}
+                onOnlyMine={myRaterId ? onlyMyColumn : undefined}
+              />
             </div>
           </div>
         )}

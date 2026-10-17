@@ -113,6 +113,11 @@ code { background: var(--panel2); padding: 1px 6px; border-radius: 4px; }
 .acct-rows dt { color: var(--muted); }
 .acct-rows dd { margin: 0; font-weight: 600; text-align: right; }
 .acct-pop .btn { width: 100%; text-align: center; }
+.acct-pref { display: flex; flex-direction: column; gap: 6px; color: var(--muted); }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { flex: 1; background: transparent; border: 0; color: var(--muted); padding: 6px 10px; cursor: pointer; font: inherit; font-size: 13px; }
+.seg button:hover { color: var(--text); }
+.seg button.on { background: var(--accent); color: #fff; font-weight: 600; }
 
 /* ---- table (no inner scrolling: the page scrolls) ---- */
 .table-wrap { margin: 10px 16px 0; border: 1px solid var(--line); background: var(--panel); width: max-content; }
@@ -217,7 +222,8 @@ td.editable:hover:not(:has(.pill))::after { color: var(--muted); }
 .toolbar-right { margin-left: auto; }
 .cols .btn.open { border-color: var(--accent); }
 .cols-pop { width: 280px; max-height: min(65vh, 560px); overflow: auto; padding: 6px; }
-.cols-actions { display: flex; justify-content: flex-end; padding: 2px 4px 6px; }
+.cols-actions { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 2px 4px 6px; }
+.cols-actions-left { display: flex; gap: 6px; }
 .cols-row { display: flex; align-items: center; justify-content: space-between; border-radius: 6px; padding: 2px 6px; }
 .cols-row:hover { background: var(--hover); }
 .cols-row.dragging { background: var(--playing); }
