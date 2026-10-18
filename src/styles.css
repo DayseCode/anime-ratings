@@ -223,7 +223,9 @@ td.editable:hover:not(:has(.pill))::after { color: var(--muted); }
 .p-rate-quick button.on { background: hsl(var(--h) 65% 40%); border-color: #fff; }
 .p-rate input { width: 6rem; background: #0e1016; color: var(--text); border: 1px solid var(--line); border-radius: 0.5714rem; padding: 0.5rem 0.7143rem; font: inherit; }
 .p-rate input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
-.p-rate-avg { color: var(--muted); }
+.p-rate-avg { display: inline-flex; align-items: center; gap: 0.4286rem; background: none; border: 0; color: var(--muted); font: inherit; cursor: pointer; padding: 0.2857rem 0.5714rem; border-radius: 0.5714rem; text-align: left; }
+.p-rate-avg:hover { background: var(--hover); color: var(--text); }
+.p-rate-avg .ico { width: 1.1429rem; height: 1.1429rem; }
 .p-rate-msg { color: #ffd37a; }
 .p-rate-next { margin-left: auto; }
 .player.full .p-seek { padding: 0.7143rem 1.4286rem 0; }

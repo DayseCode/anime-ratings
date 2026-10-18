@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { parseScore, scoreHue } from '../utils.js'
+import Icon from './Icon.jsx'
 
 /* Rating bar shown in the full-screen player: score the song you are watching
    (in YOUR column) and jump to the next song you have not rated yet. */
-export default function RatePanel({ song, raterId, column, hint, onRate, onNextUnrated }) {
+export default function RatePanel({ song, raterId, column, hint, hideAvg, onToggleAvg, onRate, onNextUnrated }) {
   const [text, setText] = useState('')
   const [msg, setMsg] = useState('')
   const timer = useRef(null)
@@ -55,9 +56,16 @@ export default function RatePanel({ song, raterId, column, hint, onRate, onNextU
       {mine != null && (
         <button className="btn small" onClick={() => onRate(null)} title="Remove my score">Clear</button>
       )}
-      <span className="p-rate-avg">
-        Avg {song?.avg != null ? song.avg.toFixed(2) : '—'} · {song?.n ?? 0} vote{song?.n === 1 ? '' : 's'}
-      </span>
+      <button
+        className="p-rate-avg"
+        onClick={onToggleAvg}
+        title={hideAvg ? 'Show the average score' : 'Hide the average score (no spoilers)'}
+      >
+        <Icon name={hideAvg ? 'eye' : 'eye-off'} />
+        {hideAvg
+          ? 'Average hidden — tap to show'
+          : `Avg ${song?.avg != null ? song.avg.toFixed(2) : '—'} · ${song?.n ?? 0} vote${song?.n === 1 ? '' : 's'}`}
+      </button>
       {msg && <span className="p-rate-msg">{msg}</span>}
       <button className="btn primary p-rate-next" onClick={next}>Next unrated →</button>
     </div>

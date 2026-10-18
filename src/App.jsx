@@ -359,6 +359,22 @@ export default function App() {
   useEffect(() => setVideoPref(metaSource), [metaSource])
   const prefRef = useRef(videoPref)
   prefRef.current = videoPref
+  // "hide the average in the full-screen player": saved in the account too
+  const metaHideAvg = session?.user?.user_metadata?.hide_avg === true
+  const [hideAvg, setHideAvg] = useState(metaHideAvg)
+  useEffect(() => setHideAvg(metaHideAvg), [metaHideAvg])
+  const hideAvgRef = useRef(hideAvg)
+  hideAvgRef.current = hideAvg
+  const toggleHideAvg = useCallback(async () => {
+    const before = hideAvgRef.current
+    setHideAvg(!before)
+    const { error } = await supabase.auth.updateUser({ data: { hide_avg: !before } })
+    if (error) {
+      setHideAvg(before)
+      notify(`Not saved: ${error.message}`)
+    }
+  }, [notify])
+
   const changeVideoSource = useCallback(
     async (value) => {
       const before = prefRef.current
@@ -549,6 +565,8 @@ export default function App() {
             raterId: myRaterId,
             column: myRater?.name,
             hint: session ? 'Ask an admin to link your account to a rating column to rate songs.' : 'Log in to rate songs.',
+            hideAvg,
+            onToggleAvg: toggleHideAvg,
             onRate: rateCurrent,
             onNextUnrated: nextUnrated,
           }}
