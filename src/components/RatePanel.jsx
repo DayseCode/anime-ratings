@@ -63,7 +63,7 @@ export default function RatePanel({ song, raterId, column, hint, hideAvg, onTogg
       >
         <Icon name={hideAvg ? 'eye' : 'eye-off'} />
         {hideAvg
-          ? 'Average hidden — tap to show'
+          ? `Avg #.## · ${song?.n ?? 0} vote${song?.n === 1 ? '' : 's'}`
           : `Avg ${song?.avg != null ? song.avg.toFixed(2) : '—'} · ${song?.n ?? 0} vote${song?.n === 1 ? '' : 's'}`}
       </button>
       {msg && <span className="p-rate-msg">{msg}</span>}
