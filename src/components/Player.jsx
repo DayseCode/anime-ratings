@@ -162,7 +162,7 @@ function YouTubeEngine({ videoId, volume, muted, ctrl, onState, onEnded }) {
 }
 
 /* ---------- the player panel ---------- */
-export default function Player({ track, liveSong, rating, onClose, onNext, onPrev, onSource }) {
+export default function Player({ track, liveSong, rating, autoNext, onClose, onNext, onPrev, onSource }) {
   const { song, src } = track
   const sources = playableSources(song)
   const current = sources.find((s) => s.key === src) || sources[0]
@@ -248,10 +248,10 @@ export default function Player({ track, liveSong, rating, onClose, onNext, onPre
 
 <div className="p-screen" onDoubleClick={toggleFull} onClick={(e) => { if (!e.target.closest('.p-cover')) ctrl.current?.toggle() }}>
         {current?.key === 'yt' && ytId && (
-          <YouTubeEngine key={current.url} videoId={ytId} volume={volume} muted={muted} ctrl={ctrl} onState={merge} />
+          <YouTubeEngine key={current.url} videoId={ytId} volume={volume} muted={muted} ctrl={ctrl} onState={merge} onEnded={autoNext ? onNext : undefined} />
         )}
         {current?.key === 'v' && (
-          <VideoEngine key={current.url} url={current.url} volume={volume} muted={muted} ctrl={ctrl} onState={merge} />
+          <VideoEngine key={current.url} url={current.url} volume={volume} muted={muted} ctrl={ctrl} onState={merge} onEnded={autoNext ? onNext : undefined} />
         )}
         {error && (
           <div className="p-cover">

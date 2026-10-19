@@ -375,6 +375,25 @@ export default function App() {
     }
   }, [notify])
 
+  // "auto-play the next song when one ends": off by default, each user chooses (saved in the account)
+  const metaAutoNext = session?.user?.user_metadata?.autoplay_next === true
+  const [autoNext, setAutoNext] = useState(metaAutoNext)
+  useEffect(() => setAutoNext(metaAutoNext), [metaAutoNext])
+  const autoNextRef = useRef(autoNext)
+  autoNextRef.current = autoNext
+  const changeAutoNext = useCallback(
+    async (value) => {
+      const before = autoNextRef.current
+      setAutoNext(value)
+      const { error } = await supabase.auth.updateUser({ data: { autoplay_next: value } })
+      if (error) {
+        setAutoNext(before)
+        notify(`Not saved: ${error.message}`)
+      }
+    },
+    [notify]
+  )
+
   const changeVideoSource = useCallback(
     async (value) => {
       const before = prefRef.current
@@ -483,6 +502,8 @@ export default function App() {
               columnName={myRater?.name}
               isAdmin={isAdmin}
               videoSource={videoPref}
+              autoNext={autoNext}
+              onAutoNext={changeAutoNext}
               onVideoSource={changeVideoSource}
               onAdmin={() => setShowAdmin(true)}
               onLogin={() => setShowAuth(true)}
@@ -561,6 +582,7 @@ export default function App() {
         <Player
           track={track}
           liveSong={liveSong}
+          autoNext={autoNext}
           rating={{
             raterId: myRaterId,
             column: myRater?.name,

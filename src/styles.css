@@ -52,7 +52,7 @@ code { background: var(--panel2); padding: 1px 0.4286rem; border-radius: 0.2857r
 .app { width: max-content; min-width: 100%; padding-bottom: 6.4286rem; }
 .vw { position: sticky; left: 0; width: var(--vw); padding-left: 1.1429rem; padding-right: 1.1429rem; }
 
-.sticky-head { position: sticky; top: 0; left: 0; z-index: 20; width: var(--vw); background: var(--bg); padding: 0 1.1429rem 0.5714rem; }
+.sticky-head { position: sticky; top: 0; left: 0; z-index: 45; /* above the mini player (40), so the menus are never hidden behind it */ width: var(--vw); background: var(--bg); padding: 0 1.1429rem 0.5714rem; }
 .topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5714rem 0.8571rem; border-bottom: 1px solid var(--line); }
 .user-area { display: flex; align-items: center; gap: 0.5714rem; padding: 0.4286rem 0; }
 
