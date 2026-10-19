@@ -248,10 +248,10 @@ export default function Player({ track, liveSong, rating, onClose, onNext, onPre
 
 <div className="p-screen" onDoubleClick={toggleFull} onClick={(e) => { if (!e.target.closest('.p-cover')) ctrl.current?.toggle() }}>
         {current?.key === 'yt' && ytId && (
-          <YouTubeEngine key={current.url} videoId={ytId} volume={volume} muted={muted} ctrl={ctrl} onState={merge} onEnded={onNext} />
+          <YouTubeEngine key={current.url} videoId={ytId} volume={volume} muted={muted} ctrl={ctrl} onState={merge} />
         )}
         {current?.key === 'v' && (
-          <VideoEngine key={current.url} url={current.url} volume={volume} muted={muted} ctrl={ctrl} onState={merge} onEnded={onNext} />
+          <VideoEngine key={current.url} url={current.url} volume={volume} muted={muted} ctrl={ctrl} onState={merge} />
         )}
         {error && (
           <div className="p-cover">
