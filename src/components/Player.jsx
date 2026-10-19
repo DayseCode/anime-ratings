@@ -267,44 +267,54 @@ export default function Player({ track, liveSong, rating, autoNext, onClose, onN
         )}
       </div>
 
-      {full && <RatePanel song={liveSong ?? song} {...rating} />}
+      {/* rating + seek + buttons live in one "dock" (a floating glass bar in full screen) */}
+      <div className="p-dock">
+        {full && <RatePanel song={liveSong ?? song} {...rating} />}
 
-      <div className="p-seek">
-        <span className="p-time">{fmtTime(ps.time)}</span>
-        <input
-          type="range"
-          min="0"
-          max={ps.duration || 1}
-          step="0.1"
-          value={Math.min(ps.time, ps.duration || 1)}
-          onChange={(e) => {
-            const t = Number(e.target.value)
-            merge({ time: t })
-            ctrl.current?.seek(t)
-          }}
-        />
-        <span className="p-time">{fmtTime(ps.duration)}</span>
-      </div>
+        <div className="p-seek">
+          <span className="p-time">{fmtTime(ps.time)}</span>
+          <input
+            className="p-range"
+            style={{ '--p': `${Math.min(100, (ps.time / (ps.duration || 1)) * 100)}%` }}
+            type="range"
+            min="0"
+            max={ps.duration || 1}
+            step="0.1"
+            value={Math.min(ps.time, ps.duration || 1)}
+            onChange={(e) => {
+              const t = Number(e.target.value)
+              merge({ time: t })
+              ctrl.current?.seek(t)
+            }}
+          />
+          <span className="p-time">{fmtTime(ps.duration)}</span>
+        </div>
 
-      <div className="p-controls">
-        <button className="icon-btn big" onClick={onPrev} title="Previous in list"><Icon name="prev" fallback="⏮" /></button>
-        <button className="icon-btn big" onClick={() => ctrl.current?.toggle()} title="Play / pause">{ps.playing ? <Icon name="pause" fallback="⏸" /> : <Icon name="play" fallback="▶" />}</button>
-        <button className="icon-btn big" onClick={onNext} title="Next in list"><Icon name="next" fallback="⏭" /></button>
-        <button className="icon-btn" onClick={() => setMuted(!muted)} title="Mute">{muted || volume === 0 ? <Icon name="mute" fallback="🔇" /> : <Icon name="volume" fallback="🔊" />}</button>
-        <input
-          className="p-vol"
-          type="range"
-          min="0"
-          max="1"
-          step="0.05"
-          value={muted ? 0 : volume}
-          onChange={(e) => {
-            setVolume(Number(e.target.value))
-            setMuted(false)
-          }}
-        />
-        <button className="btn small" onClick={() => setHidden(!hidden)}>{hidden ? <><Icon name="eye" fallback="👁" /> Show video</> : <><Icon name="eye-off" /> Hide video</>}</button>
-        <button className="icon-btn big" onClick={toggleFull} title={full ? 'Exit full screen' : 'Full screen (or double-click the video)'}>{full ? <Icon name="fullscreen-exit" fallback="🗗" /> : <Icon name="fullscreen" fallback="⛶" />}</button>
+        <div className="p-controls">
+          <div className="p-ctl-l">
+            <button className="icon-btn big" onClick={onPrev} title="Previous in list"><Icon name="prev" fallback="⏮" /></button>
+            <button className="icon-btn big p-play" onClick={() => ctrl.current?.toggle()} title="Play / pause">{ps.playing ? <Icon name="pause" fallback="⏸" /> : <Icon name="play" fallback="▶" />}</button>
+            <button className="icon-btn big" onClick={onNext} title="Next in list"><Icon name="next" fallback="⏭" /></button>
+            <button className="icon-btn" onClick={() => setMuted(!muted)} title="Mute">{muted || volume === 0 ? <Icon name="mute" fallback="🔇" /> : <Icon name="volume" fallback="🔊" />}</button>
+            <input
+              className="p-vol p-range"
+              style={{ '--p': `${(muted ? 0 : volume) * 100}%` }}
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={muted ? 0 : volume}
+              onChange={(e) => {
+                setVolume(Number(e.target.value))
+                setMuted(false)
+              }}
+            />
+          </div>
+          <div className="p-ctl-r">
+            <button className="btn small" onClick={() => setHidden(!hidden)}>{hidden ? <><Icon name="eye" fallback="👁" /> Show video</> : <><Icon name="eye-off" /> Hide video</>}</button>
+            <button className="icon-btn big" onClick={toggleFull} title={full ? 'Exit full screen' : 'Full screen (or double-click the video)'}>{full ? <Icon name="fullscreen-exit" fallback="🗗" /> : <Icon name="fullscreen" fallback="⛶" />}</button>
+          </div>
+        </div>
       </div>
     </div>
   )
