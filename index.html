@@ -11,11 +11,11 @@
       /* colour theme ("skin") + dark/light, applied before the first paint so nothing flashes.
          The skin ids / font URLs must match src/skins.js. v = SKIN_VERSION there. */
       (function () {
-        var root = document.documentElement, skin = 'sakura', v = '1', g = 'https://fonts.googleapis.com/css2?family='
+        var root = document.documentElement, skin = 'sakura', v = '2', g = 'https://fonts.googleapis.com/css2?family='
         var fonts = {
-          neon: g + 'Inter:wght@400;500;600;700;800&display=swap',
+          purple: g + 'Inter:wght@400;500;600;700;800&display=swap',
           calm: g + 'Onest:wght@400;500;600;700;800&display=swap',
-          purple: g + 'Onest:wght@400;500;600;700&family=Unbounded:wght@500;600&display=swap'
+          neon: g + 'Onest:wght@400;500;600;700&family=Unbounded:wght@500;600&display=swap'
         }
         try { skin = localStorage.getItem('skin') || skin } catch (e) {}
         if (!/^(sakura|neon|calm|purple)$/.test(skin)) skin = 'sakura'
