@@ -24,6 +24,7 @@
   --mine-head: #3a2944;
   --mine-head-text: #ffd9ec;
   --hover: rgba(226, 213, 255, .045);
+  --sticky-hover: #201e2c;
   --playing: rgba(92, 229, 206, .11);
   --input-bg: #131221;
   --pop-bg: #1d1a30;
@@ -91,6 +92,7 @@
   --mine-head: #f2dce8;
   --mine-head-text: #7e2456;
   --hover: rgba(80, 45, 80, .045);
+  --sticky-hover: #f7f1ed;
   --playing: rgba(24, 127, 117, .095);
   --input-bg: #fffdf9;
   --pop-bg: #fffaf6;
@@ -132,7 +134,7 @@
 html { font-size: clamp(14px, 0.7292vw, 28px); }
 html, body { margin: 0; background: var(--bg); color: var(--text); }
 html { scroll-behavior: smooth; }
-body { background: radial-gradient(ellipse 78rem 36rem at 4% -10%, var(--bg-glow), transparent 72%), radial-gradient(ellipse 54rem 30rem at 98% 2%, var(--mint-glow), transparent 72%), var(--bg); background-attachment: fixed; }
+body { background: var(--bg); }
 body { font: 1rem/1.45 Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; letter-spacing: -.008em; }
 a { color: var(--accent); cursor: pointer; }
 code { background: var(--panel2); padding: 1px 0.4286rem; border-radius: 0.2857rem; }
@@ -657,7 +659,7 @@ td.editable:hover .pill { border-color: hsl(var(--h, 60) 48% 62% / .55); }
 .play-btn:hover { transform: translateY(-1px); }
 
 .modal { border-radius: var(--radius-xl); box-shadow: var(--shadow); }
-.overlay { /* Keep overlays responsive on lower-powered devices. */ }
+.overlay { } /* Keep overlays responsive on lower-powered devices. */
 .banner, .toast { border-radius: var(--radius-md); }
 .logs-wrap, .users-wrap { border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); }
 .etag, .badge { border-radius: var(--radius-xs); }
@@ -675,4 +677,10 @@ td.editable:hover .pill { border-color: hsl(var(--h, 60) 48% 62% / .55); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}
+
+tbody tr:hover td.num,
+tbody tr:hover td.title,
+tbody tr:hover td.links {
+  background-color: var(--sticky-hover);
 }
