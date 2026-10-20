@@ -9,7 +9,7 @@ export const BADGE = { OP: 'OP', ED: 'ED', INSERT: 'INS' }
 export const isYoutube = (u) => /(youtube\.com|youtu\.be)/i.test(u || '')
 
 // hue for a score: red (1) -> yellow (5.5) -> green (10). The actual colours are set in CSS per theme.
-export const scoreHue = (s) => Math.round(((Math.min(10, Math.max(1, s)) - 1) / 9) * 120)
+export const scoreHue = (s) => Math.round(220 - ((Math.min(10, Math.max(1, s)) - 1) / 9) * 184)
 
 // red (1) -> yellow (5.5) -> green (10)
 export const scoreColor = (s) => {
