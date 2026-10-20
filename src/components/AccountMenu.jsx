@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { SKINS } from '../skins.js'
 
 /* One compact "avatar + name" button instead of nick + column + role + 2 buttons.
    Click it for the details, the Admin panel and Log out. */
-export default function AccountMenu({ session, name, email, columnName, isAdmin, videoSource, onVideoSource, autoNext, onAutoNext, onAdmin, onLogin, onLogout }) {
+export default function AccountMenu({ session, name, email, columnName, isAdmin, videoSource, onVideoSource, autoNext, onAutoNext, skin, onSkin, onAdmin, onLogin, onLogout }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -55,6 +56,19 @@ export default function AccountMenu({ session, name, email, columnName, isAdmin,
             <div className="seg" role="group" aria-label="Auto-play next song">
               <button className={!autoNext ? 'on' : ''} onClick={() => onAutoNext(false)}>Off</button>
               <button className={autoNext ? 'on' : ''} onClick={() => onAutoNext(true)}>On</button>
+            </div>
+          </div>
+          <div className="acct-pref">
+            <span>Colour theme</span>
+            <div className="skin-pick" role="group" aria-label="Colour theme">
+              {SKINS.map((k) => (
+                <button key={k.id} className={`skin-opt ${skin === k.id ? 'on' : ''}`} onClick={() => onSkin(k.id)} aria-pressed={skin === k.id}>
+                  <span className="skin-dots" aria-hidden="true">
+                    {k.dots.map((c) => <i key={c} style={{ background: c }} />)}
+                  </span>
+                  {k.name}
+                </button>
+              ))}
             </div>
           </div>
           {isAdmin && <button className="btn" onClick={run(onAdmin)}>Admin panel</button>}

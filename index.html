@@ -7,6 +7,23 @@
       try { document.documentElement.dataset.theme = localStorage.getItem('theme') === 'light' ? 'light' : 'dark' }
       catch (e) { document.documentElement.dataset.theme = 'dark' }
     </script>
+    <script>
+      /* colour theme ("skin") + dark/light, applied before the first paint so nothing flashes.
+         The skin ids / font URLs must match src/skins.js. v = SKIN_VERSION there. */
+      (function () {
+        var root = document.documentElement, skin = 'sakura', v = '1', g = 'https://fonts.googleapis.com/css2?family='
+        var fonts = {
+          neon: g + 'Inter:wght@400;500;600;700;800&display=swap',
+          calm: g + 'Onest:wght@400;500;600;700;800&display=swap',
+          purple: g + 'Onest:wght@400;500;600;700&family=Unbounded:wght@500;600&display=swap'
+        }
+        try { skin = localStorage.getItem('skin') || skin } catch (e) {}
+        if (!/^(sakura|neon|calm|purple)$/.test(skin)) skin = 'sakura'
+        root.dataset.skin = skin
+        document.write('<link id="skin-css" rel="stylesheet" href="/themes/' + skin + '.css?v=' + v + '">')
+        if (fonts[skin]) document.write('<link id="skin-font" rel="stylesheet" href="' + fonts[skin] + '" media="print" onload="this.media=\'all\'">')
+      })()
+    </script>
     <title>Anime OP / ED / Insert Ratings</title>
     <link rel="icon" type="image/x-icon" href="/favlogo.svg" />
   </head>

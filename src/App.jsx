@@ -11,6 +11,7 @@ import Player from './components/Player.jsx'
 import ColumnsMenu from './components/ColumnsMenu.jsx'
 import AccountMenu from './components/AccountMenu.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
+import { applySkin, isSkin } from './skins.js'
 
 const PAGE = 200
 const DEFAULT_SORT = { key: 'title', dir: 'asc' } // A-Z by name, "OP2" before "OP10"
@@ -42,6 +43,32 @@ export default function App() {
     try { localStorage.setItem('theme', theme) } catch { /* ignore */ }
   }, [theme])
   const toggleTheme = useCallback(() => setTheme((t) => (t === 'dark' ? 'light' : 'dark')), [])
+
+  /* ---------- colour theme / skin (Sakura, Neon Party, ...): remembered here and saved in the account ---------- */
+  const [skin, setSkin] = useState(() => document.documentElement.dataset.skin || 'sakura')
+  const metaSkin = session?.user?.user_metadata?.skin
+  useEffect(() => {
+    // after login, the skin saved in the account wins (so it follows you to every device)
+    if (isSkin(metaSkin)) {
+      setSkin(metaSkin)
+      applySkin(metaSkin)
+      try { localStorage.setItem('skin', metaSkin) } catch { /* ignore */ }
+    }
+  }, [metaSkin])
+  const skinRef = useRef(skin)
+  skinRef.current = skin
+  const changeSkin = useCallback(
+    async (id) => {
+      if (!isSkin(id) || id === skinRef.current) return
+      setSkin(id)
+      applySkin(id)
+      try { localStorage.setItem('skin', id) } catch { /* ignore */ }
+      const { error } = await supabase.auth.updateUser({ data: { skin: id } })
+      if (error) notify(`Saved on this device only: ${error.message}`)
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  )
   const headRef = useRef(null)
   const recentLocal = useRef(new Map()) // my own recent edits (to ignore their echo)
   const pendingLive = useRef([]) // score changes from other people, applied once per second
@@ -504,6 +531,8 @@ export default function App() {
               videoSource={videoPref}
               autoNext={autoNext}
               onAutoNext={changeAutoNext}
+              skin={skin}
+              onSkin={changeSkin}
               onVideoSource={changeVideoSource}
               onAdmin={() => setShowAdmin(true)}
               onLogin={() => setShowAuth(true)}
