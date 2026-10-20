@@ -44,18 +44,20 @@ export default function RatePanel({ song, raterId, column, hint, hideAvg, onTogg
           </button>
         ))}
       </div>
-      <input
-        value={text}
-        inputMode="decimal"
-        placeholder="e.g. 7.5"
-        aria-label="Score"
-        onChange={(e) => setText(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-      />
-      {mine != null && (
-        <button className="btn small" onClick={() => onRate(null)} title="Remove my score">Clear</button>
-      )}
+      <div className="p-rate-row">
+        <input
+          value={text}
+          inputMode="decimal"
+          placeholder="e.g. 7.5"
+          aria-label="Score"
+          onChange={(e) => setText(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+        />
+        {mine != null && (
+          <button className="btn small" onClick={() => onRate(null)} title="Remove my score">Clear</button>
+        )}
+      </div>
       <button
         className="p-rate-avg"
         onClick={onToggleAvg}

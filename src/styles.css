@@ -488,3 +488,41 @@ table.users tr:last-child td { border-bottom: 0; }
   .player.full .p-rate-avg { color: rgba(255, 255, 255, 0.78); }
   .player.full .p-rate-next { margin-left: auto; padding: 0.75rem 1.4rem; border-radius: 0.95rem; font-size: 1rem; box-shadow: 0 8px 26px rgba(108, 140, 255, 0.5); }
 }
+
+/* =====================================================================
+   FULL-SCREEN PLAYER ON PHONES
+   portrait : video right under the title, big 5 x 2 score buttons below
+   landscape: video big on the left (title, seek bar and buttons float on it),
+              score column on the right - no more tiny video squeezed between bars
+   ===================================================================== */
+.p-rate-row { display: flex; align-items: center; gap: 0.5rem; }
+
+@media (max-width: 760px) and (orientation: portrait) {
+  .player.full .p-screen { flex: none; width: 100%; aspect-ratio: 16 / 9; }
+  .player.full .p-rate { flex: 1; min-height: 0; overflow: auto; align-content: center; padding: 1rem 1.1rem; gap: 0.8rem; }
+  .player.full .p-rate-quick { display: grid; grid-template-columns: repeat(5, 1fr); flex: 1 1 100%; gap: 0.5rem; }
+  .player.full .p-rate-quick button { flex: none; height: 3.4rem; min-width: 0; border-radius: 0.8rem; font-size: 1.2rem; }
+  .player.full .p-rate-row { flex: 1 1 100%; }
+  .player.full .p-rate-row input { flex: 1; min-width: 0; font-size: 1rem; padding: 0.7rem 0.8rem; }
+  .player.full .p-rate-next { flex: 1 1 100%; margin-left: 0; padding: 0.95rem; font-size: 1.05rem; border-radius: 0.9rem; }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .player.full { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; grid-template-rows: minmax(0, 1fr); }
+  .player.full .p-screen { grid-area: 1 / 1; flex: none; width: auto; aspect-ratio: auto; min-height: 0; }
+  .player.full .p-screen::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6.5rem; z-index: 1; pointer-events: none;
+    background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.8)); }
+  .player.full .p-head { grid-area: 1 / 1; align-self: start; z-index: 3; padding: 0.4rem 0.75rem 1.8rem; pointer-events: none;
+    background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0)); }
+  .player.full .p-head > * { pointer-events: auto; }
+  .player.full .p-title { pointer-events: none; font-size: 1rem; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8); }
+  .player.full .p-seek { grid-area: 1 / 1; align-self: end; z-index: 3; margin-bottom: 2.9rem; padding: 0 0.9rem; }
+  .player.full .p-controls { grid-area: 1 / 1; align-self: end; z-index: 3; padding: 0 0.6rem 0.35rem; }
+  .player.full .p-time { color: rgba(255, 255, 255, 0.85); }
+  .player.full .p-rate { grid-area: 1 / 2; flex-direction: column; flex-wrap: nowrap; align-items: stretch; align-content: normal; gap: 0.5rem;
+    padding: 0.6rem; overflow: auto; border-top: 0; border-left: 1px solid var(--line); }
+  .player.full .p-rate-quick { display: grid; grid-template-columns: repeat(5, 1fr); flex: none; }
+  .player.full .p-rate-quick button { flex: none; height: 2.3rem; min-width: 0; padding: 0; }
+  .player.full .p-rate-row input { flex: 1; min-width: 0; width: auto; }
+  .player.full .p-rate-next { margin: auto 0 0; flex: none; }
+}
