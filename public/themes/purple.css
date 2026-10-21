@@ -680,3 +680,81 @@ tr.playing .play-btn { background: linear-gradient(135deg, #20c997 0%, #2fb36a 1
 .player[data-moved]:not(.full) { z-index: 46; } /* above the sticky header, so it can never be lost behind it */
 .player[data-moved]:not(.full) .p-screen { max-height: none; } /* the width alone decides the size now */
 .player[data-compact]:not(.full) .p-vol { display: none; } /* narrow player: hide the volume slider */
+
+/* =====================================================================
+   STATS TAB (leaderboard + hall of fame) - src/components/StatsPage.jsx
+   ===================================================================== */
+.stats { padding-top: 1.1429rem; padding-bottom: 3rem; display: flex; flex-direction: column; gap: 2.2857rem; }
+.st-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4286rem 1.1429rem; margin-bottom: 0.7857rem; max-width: 64rem; }
+.st-title { margin: 0; font-size: 1.3571rem; font-weight: 700; }
+.st-scope.subtabs { margin: 0 0 0 auto; flex-wrap: wrap; }
+.st-wrap { max-width: 64rem; border: 1px solid var(--line); background: var(--panel); border-radius: 1.1429rem; overflow-x: auto; box-shadow: var(--shadow); }
+.st-table { width: 100%; border-collapse: collapse; }
+.st-table th, .st-table td { position: static; padding: 0.6429rem 0.9286rem; border-right: 0; border-bottom: 1px solid var(--line); white-space: nowrap; background: transparent; }
+.st-table thead th { background: var(--panel2); color: var(--muted); font-size: 0.9286rem; font-weight: 600; text-align: right; }
+.st-table thead th.st-name, .st-table thead th.st-rank, .st-table thead th.st-progress { text-align: left; }
+.st-table th.sortable { cursor: pointer; user-select: none; }
+.st-table th.sortable:hover { color: var(--text); }
+.st-table th.sorted { color: var(--accent); }
+.st-table tbody tr:last-child td { border-bottom: 0; }
+.st-table .st-num { text-align: right; font-variant-numeric: tabular-nums; }
+.st-table .st-num.strong { font-weight: 700; font-size: 1.0714rem; }
+.st-table .st-rank { width: 1%; text-align: left; }
+.st-table .st-name { text-align: left; font-weight: 600; }
+.st-table tr.me td { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.st-table tfoot td { background: var(--panel2); color: var(--muted); font-weight: 600; border-top: 1px solid var(--line); border-bottom: 0; }
+.st-place { display: inline-grid; place-items: center; width: 1.7143rem; height: 1.7143rem; border-radius: 50%; background: var(--panel2); color: var(--muted); font-size: 0.9286rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.st-place.p1 { background: #f5c451; color: #2d1e00; } .st-place.p2 { background: #cdd5e4; color: #1f2633; } .st-place.p3 { background: #dc9c66; color: #321a00; }
+.st-ava { display: inline-grid; place-items: center; flex: none; width: 1.8571rem; height: 1.8571rem; margin-right: 0.6429rem; border-radius: 50%; background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 45%, #ff7ab8)); color: #fff; font-size: 0.9286rem; font-weight: 700; vertical-align: middle; }
+.st-ava.big { width: 2.7143rem; height: 2.7143rem; margin: 0; font-size: 1.2143rem; }
+.st-you { margin-left: 0.5rem; padding: 1px 0.5rem; border-radius: 99px; background: var(--accent); color: #fff; font-style: normal; font-size: 0.7857rem; font-weight: 700; }
+.st-progress { width: 14rem; }
+.st-bar { display: inline-block; width: 8rem; height: 0.5714rem; border-radius: 99px; background: var(--panel2); vertical-align: middle; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+.st-bar i { display: block; height: 100%; border-radius: 99px; background: var(--accent); }
+.st-pct { margin-left: 0.6429rem; color: var(--muted); font-size: 0.9286rem; font-variant-numeric: tabular-nums; }
+
+.st-s { display: none; } /* short column titles are for phones only */
+.st-grid { max-width: 64rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(18.5rem, 1fr)); gap: 1rem; }
+.st-award { display: flex; flex-direction: column; gap: 0.8571rem; padding: 1.1429rem; border: 1px solid var(--line); background: var(--panel); border-radius: 1.1429rem; box-shadow: var(--shadow); }
+.st-award header { display: flex; gap: 0.8571rem; align-items: flex-start; }
+.st-ico { display: grid; place-items: center; flex: none; width: 4.2857rem; height: 4.2857rem; border-radius: 0.9286rem; background: var(--panel2); border: 1px solid var(--line); font-size: 2.2857rem; line-height: 1; }
+.st-ico img { display: block; width: 2.8571rem; height: 2.8571rem; object-fit: contain; }
+.st-award h3 { margin: 0; font-size: 1.1429rem; font-weight: 700; }
+.st-award header p { margin: 0.2143rem 0 0; color: var(--muted); font-size: 0.9286rem; line-height: 1.35; }
+.st-winner { display: flex; align-items: center; gap: 0.7857rem; padding: 0.6429rem 0.8571rem; border-radius: 0.9286rem; background: var(--panel2); border: 1px solid var(--line); }
+.st-winner.me, .st-rest li.me { border-color: var(--accent); }
+.st-winner b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 1.1429rem; }
+.st-val { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.st-winner .st-val { color: var(--accent); font-size: 1.0714rem; }
+.st-rest { list-style: none; margin: 0; padding: 0; counter-reset: place 1; display: flex; flex-direction: column; gap: 0.2857rem; }
+.st-rest li { counter-increment: place; display: flex; align-items: center; gap: 0.7143rem; padding: 0.2857rem 0.4286rem; border: 1px solid transparent; border-radius: 0.7143rem; color: var(--muted); }
+.st-rest li::before { content: counter(place); display: grid; place-items: center; flex: none; width: 1.5714rem; height: 1.5714rem; border-radius: 50%; background: var(--panel2); font-size: 0.8571rem; font-weight: 700; }
+.st-rest .st-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.st-none { padding: 0.9286rem; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 0.9286rem; }
+.st-min { margin-top: auto; color: var(--muted); font-size: 0.7857rem; opacity: .8; }
+
+/* ---- wide screens: leaderboard on the left, Hall of Fame on the right (2 columns of cards) ----
+   Below 1480px the two sections stay stacked, exactly like before. */
+@media (min-width: 1480px) {
+  .stats { display: grid; grid-template-columns: minmax(0, 58fr) minmax(0, 46fr); column-gap: 2.2857rem; align-items: start; max-width: 120rem; }
+  .stats > section > .st-head { min-height: 2.8571rem; max-width: none; }
+  .stats .st-wrap { max-width: none; }
+  .stats .st-grid { max-width: none; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* an odd last card (9 titles = 4 rows of 2 + 1) sits alone, centred under the others */
+  .stats .st-grid > .st-award:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 0.5rem); }
+}
+
+@media (max-width: 760px) {
+  .stats { gap: 1.7143rem; padding-top: 0.7143rem; }
+  .st-scope.subtabs { margin-left: 0; }
+  .st-scope.subtabs button { padding: 0.3571rem 0.8571rem; }
+  .st-table th, .st-table td { padding: 0.5rem 0.4286rem; }
+  .st-table th:first-child, .st-table td:first-child { padding-left: 0.7143rem; }
+  .st-table th:last-child, .st-table td:last-child { padding-right: 0.7143rem; }
+  .st-progress { display: none; }
+  .st-table .st-ava { display: none; } /* the table must fit a phone: no avatar next to the names */
+  .st-place { width: 1.5rem; height: 1.5rem; font-size: 0.8571rem; }
+  .st-l { display: none; } .st-s { display: inline; }
+  .st-table .st-num.strong { font-size: 1rem; }
+  .st-grid { grid-template-columns: 1fr; }
+}

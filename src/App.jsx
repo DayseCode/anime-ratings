@@ -11,6 +11,7 @@ import Player from './components/Player.jsx'
 import ColumnsMenu from './components/ColumnsMenu.jsx'
 import AccountMenu from './components/AccountMenu.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
+import StatsPage from './components/StatsPage.jsx'
 import { applySkin, isSkin } from './skins.js'
 
 const PAGE = 200
@@ -22,7 +23,7 @@ export default function App() {
   const [raters, setRaters] = useState([])
   const [data, setData] = useState({ OP: [], ED: [], INSERT: [] })
   const [loading, setLoading] = useState(true)
-  const [view, setView] = useState('songs') // 'songs' | 'logs'
+  const [view, setView] = useState('songs') // 'songs' | 'stats' | 'logs'
   const [tab, setTab] = useState('OP')
   const [search, setSearch] = useState('')
   const [onlyUnrated, setOnlyUnrated] = useState(false)
@@ -503,6 +504,8 @@ export default function App() {
   }
 
   const onLogs = view === 'logs' && isAdmin
+  const onStats = view === 'stats'
+  const onSongs = !onLogs && !onStats
   const visible = showAll ? rows : rows.slice(0, PAGE)
 
   return (
@@ -511,10 +514,11 @@ export default function App() {
         <header className="topbar">
           <nav className="tabs">
             {KINDS.map((k) => (
-              <button key={k.key} className={!onLogs && tab === k.key ? 'on' : ''} onClick={() => { setTab(k.key); setView('songs') }}>
+              <button key={k.key} className={onSongs && tab === k.key ? 'on' : ''} onClick={() => { setTab(k.key); setView('songs') }}>
                 {k.label} <span className="count">{data[k.key].length}</span>
               </button>
             ))}
+            <button className={onStats ? 'on' : ''} onClick={() => setView('stats')}>Stats</button>
             {isAdmin && (
               <button className={onLogs ? 'on' : ''} onClick={() => setView('logs')}>Logs</button>
             )}
@@ -541,14 +545,14 @@ export default function App() {
           </div>
         </header>
 
-        {!onLogs && session && profile && !myRater && !isAdmin && (
+        {onSongs && session && profile && !myRater && !isAdmin && (
           <div className="banner">
             Your account isn’t linked to a rating column yet. Ask an admin to link you — then you can click your own column to add scores.
           </div>
         )}
-        {!onLogs && !session && <div className="banner soft">Log in to add your own scores. Click any column header to sort (only for you).</div>}
+        {onSongs && !session && <div className="banner soft">Log in to add your own scores. Click any column header to sort (only for you).</div>}
 
-        {!onLogs && (
+        {onSongs && (
           <div className="toolbar">
             <input className="search" placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} />
             {myRaterId && (
@@ -582,6 +586,8 @@ export default function App() {
         <LogsPage />
       ) : loading ? (
         <div className="center-msg vw">Loading…</div>
+      ) : onStats ? (
+        <StatsPage data={data} raters={raters} myRaterId={myRaterId} />
       ) : (
         <>
           <SongTable
