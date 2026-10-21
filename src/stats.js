@@ -19,10 +19,10 @@ export const AWARDS = [
   { key: 'zen', icon: '/icons/awards/zen.png', title: 'Zen Monk', tagline: 'Calm, steady, perfectly balanced scores.', order: 'asc', get: (e) => e.std, show: 'std', needsMin: true },
   { key: 'hive', icon: '/icons/awards/hive.png', title: 'Hive Mind', tagline: 'Always votes with the crowd. One of us!', order: 'asc', get: (e) => e.off, show: 'off', needsMin: true, offOnly: true },
   { key: 'wolf', icon: '/icons/awards/wolf.png', title: 'Lone Wolf', tagline: 'Walks their own path. The crowd? Never heard of it.', order: 'desc', get: (e) => e.off, show: 'off', needsMin: true, offOnly: true },
-  { key: 'wizard', icon: '/icons/awards/wizard.png', title: 'Decimal Wizard', tagline: 'Whole numbers are for mortals: 9.2, 7.7, 8.4…', order: 'desc', get: (e) => e.decimals, show: 'decimals', need: (e) => e.decimals > 0 },
+  { key: 'half', icon: '/icons/awards/wizard.png', title: 'Half-Point Hero', tagline: 'Why pick 8 when 8.5 exists? Lives on the half-steps.', order: 'desc', get: (e) => e.halfShare, show: 'half', needsMin: true },
 ]
 
-const blank = () => ({ n: 0, sum: 0, sumSq: 0, tens: 0, ones: 0, decimals: 0, offSum: 0, offN: 0 })
+const blank = () => ({ n: 0, sum: 0, sumSq: 0, tens: 0, ones: 0, halves: 0, offSum: 0, offN: 0 })
 
 export function computeStats(data, raters) {
   const people = new Map(
@@ -45,7 +45,7 @@ export function computeStats(data, raters) {
           a.sumSq += v * v
           if (v === 10) a.tens += 1
           if (v === 1) a.ones += 1
-          if (Math.round(v * 10) % 5 !== 0) a.decimals += 1 // not a multiple of 0.5
+          if (Math.round(v * 10) % 10 === 5) a.halves += 1 // ends in .5
           if (off != null) { a.offSum += off; a.offN += 1 }
         }
       }
@@ -66,7 +66,7 @@ export function computeStats(data, raters) {
         const a = p.byScope[scope]
         const avg = a.n ? a.sum / a.n : null
         return {
-          id: p.id, name: p.name, n: a.n, avg, tens: a.tens, ones: a.ones, decimals: a.decimals,
+          id: p.id, name: p.name, n: a.n, avg, tens: a.tens, ones: a.ones, halves: a.halves, halfShare: a.n ? a.halves / a.n : null,
           std: a.n ? Math.sqrt(Math.max(0, a.sumSq / a.n - avg * avg)) : null,
           off: a.offN ? a.offSum / a.offN : null, offN: a.offN,
         }
@@ -92,7 +92,7 @@ export function formatValue(show, v) {
     case 'off': return `${v.toFixed(2)} off`
     case 'tens': return `${v} × 10`
     case 'ones': return `${v} × 1`
-    case 'decimals': return `${v} decimal${v === 1 ? '' : 's'}`
+    case 'half': return `${Math.round(v * 100)}% halves`
     default: return String(v)
   }
 }
