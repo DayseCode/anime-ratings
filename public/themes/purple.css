@@ -658,3 +658,25 @@ tr.playing .play-btn { background: linear-gradient(135deg, #20c997 0%, #2fb36a 1
 @media (max-width: 760px), (hover: none) and (pointer: coarse) {
   .sticky-head { -webkit-backdrop-filter: none; backdrop-filter: none; position: relative; z-index: 45; }
 }
+
+/* =====================================================================
+   FLOATING MINI PLAYER: drag by the title bar, resize from any corner (src/useFloatingPlayer.js)
+   ===================================================================== */
+.player:not(.full) .p-head { cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.player:not(.full) .p-head:active { cursor: grabbing; }
+.p-rz { position: absolute; z-index: 7; width: 14px; height: 14px; touch-action: none; }
+.p-rz.nw { left: 0; top: 0; cursor: nwse-resize; }
+.p-rz.ne { right: 0; top: 0; cursor: nesw-resize; }
+.p-rz.sw { left: 0; bottom: 0; cursor: nesw-resize; }
+.p-rz.se { right: 0; bottom: 0; cursor: nwse-resize; }
+.p-rz::after { content: ''; position: absolute; width: 8px; height: 8px; border: 2px solid rgba(255, 255, 255, .6); opacity: 0; transition: opacity .15s; }
+.p-rz.nw::after { left: 3px; top: 3px; border-right: 0; border-bottom: 0; border-top-left-radius: 6px; }
+.p-rz.ne::after { right: 3px; top: 3px; border-left: 0; border-bottom: 0; border-top-right-radius: 6px; }
+.p-rz.sw::after { left: 3px; bottom: 3px; border-right: 0; border-top: 0; border-bottom-left-radius: 6px; }
+.p-rz.se::after { right: 3px; bottom: 3px; border-left: 0; border-top: 0; border-bottom-right-radius: 6px; }
+.player:hover .p-rz::after { opacity: .65; }
+@media (pointer: coarse) { .p-rz { width: 22px; height: 22px; } .p-rz::after { opacity: .5; } }
+/* once the player has been moved / resized (state is set from JS) */
+.player[data-moved]:not(.full) { z-index: 46; } /* above the sticky header, so it can never be lost behind it */
+.player[data-moved]:not(.full) .p-screen { max-height: none; } /* the width alone decides the size now */
+.player[data-compact]:not(.full) .p-vol { display: none; } /* narrow player: hide the volume slider */

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { fmtTime, playableSources, youtubeId } from '../utils.js'
 import Icon from './Icon.jsx'
 import RatePanel from './RatePanel.jsx'
+import useFloatingPlayer from '../useFloatingPlayer.js'
 
 /* remember small preferences (hidden video, volume) in this browser */
 function usePersisted(key, initial) {
@@ -174,6 +175,7 @@ export default function Player({ track, liveSong, rating, autoNext, onClose, onN
   const ctrl = useRef(null)
   const rootRef = useRef(null)
   const [full, setFull] = useState(false)
+  const { onHeadPointerDown, startResize } = useFloatingPlayer(rootRef, full) // drag + resize of the mini player
 
   // Real browser fullscreen when available, otherwise a "fill the window" fallback (e.g. iPhone)
   const toggleFull = async () => {
@@ -234,7 +236,10 @@ export default function Player({ track, liveSong, rating, autoNext, onClose, onN
 
   return (
     <div className={`player ${full ? 'full' : ''}`} ref={rootRef}>
-      <div className="p-head">
+      {!full && ['nw', 'ne', 'sw', 'se'].map((c) => (
+        <span key={c} className={`p-rz ${c}`} onPointerDown={(e) => startResize(e, c)} aria-hidden="true" />
+      ))}
+      <div className="p-head" onPointerDown={onHeadPointerDown}>
         <span className="p-title" title={title}>{title}</span>
         {sources.length > 1 &&
           sources.map((s) => (

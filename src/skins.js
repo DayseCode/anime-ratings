@@ -2,7 +2,7 @@
    contains its own dark + light variants (the sun / moon button still switches those).
    Only the chosen skin is ever downloaded, so the others cost nothing.
    index.html applies the saved skin before the first paint (same ids + font URLs there). */
-export const SKIN_VERSION = '2' // bump when you edit a theme file, so browsers fetch the new one
+export const SKIN_VERSION = '3' // bump when you edit a theme file, so browsers fetch the new one
 export const DEFAULT_SKIN = 'sakura'
 
 const G = 'https://fonts.googleapis.com/css2?family='
