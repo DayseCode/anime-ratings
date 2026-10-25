@@ -23,6 +23,7 @@ export default function RatePanel({ song, raterId, column, hint, hideAvg, onTogg
   const commit = () => {
     const parsed = parseScore(text)
     if (Number.isNaN(parsed)) return flash('Score must be a number from 1 to 10')
+    setText(parsed == null ? '' : String(parsed)) // show the value that is really saved (e.g. 7.3 -> 7.5)
     if (parsed !== mine) onRate(parsed)
   }
 

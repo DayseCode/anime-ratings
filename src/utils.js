@@ -37,7 +37,7 @@ export function parseScore(text) {
   if (t === '') return null
   const v = Number(t)
   if (!Number.isFinite(v) || v < 1 || v > 10) return NaN
-  return Math.round(v * 10) / 10
+  return Math.round(v * 2) / 2 // scores go in steps of 0.5 (7.3 -> 7.5, 7.2 -> 7)
 }
 
 export const SONG_COLUMNS = 'id,kind,title,author,song,youtube_url,vlink_url'
