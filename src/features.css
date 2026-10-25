@@ -55,3 +55,23 @@ th.sortable.blind-off:hover { color: inherit; }
   .st-tiles b { font-size: 1.2857rem; }
   .st-table td.st-song { min-width: 8rem; }
 }
+
+/* ---- Admin: import from AnimeThemes ---- */
+.at-import { margin: 0 0 1.4286rem; padding: 0.8571rem 1rem; border: 1px solid var(--line); background: var(--panel2); border-radius: 1.1429rem; }
+.at-import > summary { cursor: pointer; font-weight: 600; }
+.at-search { display: flex; gap: 0.5714rem; margin-top: 0.7143rem; }
+.at-search input { flex: 1; min-width: 0; }
+.at-anime { display: flex; flex-wrap: wrap; gap: 0.4286rem; margin-top: 0.7143rem; }
+.at-themes { margin-top: 0.8571rem; display: flex; flex-direction: column; gap: 0.7143rem; align-items: flex-start; }
+.at-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4286rem 0.8571rem; width: 100%; }
+.at-bar-r { margin-left: auto; display: flex; gap: 0.4286rem; }
+.at-list { list-style: none; margin: 0; padding: 0; width: 100%; display: flex; flex-direction: column; gap: 0.4286rem; }
+.at-list li { display: flex; align-items: center; gap: 0.7143rem; padding: 0.4286rem 0.6429rem; border: 1px solid var(--line); background: var(--panel); border-radius: 0.8571rem; }
+.at-list li.dup { opacity: .55; }
+.at-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2143rem; }
+.at-list .at-title { width: 100%; }
+.at-list select { max-width: 16rem; }
+@media (max-width: 760px) {
+  .at-list li { flex-wrap: wrap; }
+  .at-list select { max-width: 100%; width: 100%; }
+}

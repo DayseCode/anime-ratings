@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabase.js'
 import { BADGE, KINDS, isYoutube } from '../utils.js'
+import AnimeThemesImport from './AnimeThemesImport.jsx'
 
 /* ---------------- Songs tab: add form (left) + search/delete (right) ---------------- */
 function SongsTab({ data, onAdd, onEdit }) {
@@ -55,6 +56,8 @@ function SongsTab({ data, onAdd, onEdit }) {
   }
 
   return (
+    <>
+    <AnimeThemesImport data={data} onAdd={onAdd} />
     <div className="admin-grid">
       <form onSubmit={submit} className="admin-left">
         <label>{isInsert ? 'Anime title:' : 'Anime name:'}</label>
@@ -110,6 +113,7 @@ function SongsTab({ data, onAdd, onEdit }) {
         </ul>
       </div>
     </div>
+    </>
   )
 }
 
