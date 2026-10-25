@@ -53,7 +53,7 @@ function themesOf(anime) {
     .sort((a, b) => (a.kind === b.kind ? a.seq - b.seq : a.kind === 'OP' ? -1 : 1))
 }
 
-export default function AnimeThemesImport({ data, onAdd }) {
+export default function AnimeThemesImport({ data, onAdd, onPreview, previewUrl }) {
   const [q, setQ] = useState('')
   const [busy, setBusy] = useState(false)
   const [adding, setAdding] = useState(false)
@@ -62,6 +62,10 @@ export default function AnimeThemesImport({ data, onAdd }) {
   const [rows, setRows] = useState([]) // [{ ...theme, title, opt, checked }]
   const [msg, setMsg] = useState(null)
   const reqId = useRef(0)
+
+  // preview goes to the app's built-in player (see previewSong in App.jsx)
+  const playing = (r) => previewUrl != null && previewUrl === r.options[r.opt]?.url
+  const toggle = (r) => (playing(r) ? onPreview(null) : onPreview({ kind: r.kind, title: r.title, vlink_url: r.options[r.opt].url }))
 
   const open = (anime) => {
     setCurrent(anime)
@@ -186,8 +190,21 @@ export default function AnimeThemesImport({ data, onAdd }) {
                       {r.options.length === 0 && ' · no video on AnimeThemes'}
                     </small>
                   </div>
+                  <button
+                    type="button"
+                    className="btn small at-play"
+                    disabled={r.options.length === 0}
+                    onClick={() => toggle(r)}
+                    title="Listen in the player before adding"
+                  >
+                    {playing(r) ? 'Stop' : 'Play'}
+                  </button>
                   {r.options.length > 1 && (
-                    <select value={r.opt} onChange={(e) => patch(r.key, { opt: Number(e.target.value) })} aria-label="Video version">
+                    <select
+                      value={r.opt}
+                      onChange={(e) => { if (playing(r)) onPreview(null); patch(r.key, { opt: Number(e.target.value) }) }}
+                      aria-label="Video version"
+                    >
                       {r.options.map((o, i) => <option key={o.url} value={i}>{o.label}</option>)}
                     </select>
                   )}

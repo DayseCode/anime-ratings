@@ -475,9 +475,16 @@ export default function App() {
     setTrack({ song, src: pickSource(song, prefRef.current) })
   }, [])
 
+  // listen to a song from the AnimeThemes import before it is added (null = stop); it has no rating and no next/prev
+  const previewSong = useCallback((p) => {
+    if (!p) return setTrack((t) => (t?.song.preview ? null : t))
+    const song = { id: 'preview', preview: true, kind: p.kind, title: p.title, author: null, song: null, youtube_url: null, vlink_url: p.vlink_url, scores: {}, avg: null, n: 0 }
+    setTrack({ song, src: 'v' })
+  }, [])
+
   const step = useCallback((dir) => {
     setTrack((t) => {
-      if (!t) return t
+      if (!t || t.song.preview) return t
       const list = rowsRef.current.filter((s) => s.youtube_url || s.vlink_url)
       const i = list.findIndex((s) => s.id === t.song.id)
       const next = i === -1 ? list[dir > 0 ? 0 : list.length - 1] : list[i + dir]
@@ -665,9 +672,9 @@ export default function App() {
           liveSong={liveSong}
           autoNext={autoNext}
           rating={{
-            raterId: myRaterId,
+            raterId: track.song.preview ? null : myRaterId,
             column: myRater?.name,
-            hint: session ? 'Ask an admin to link your account to a rating column to rate songs.' : 'Log in to rate songs.',
+            hint: track.song.preview ? 'Preview of a song that has not been added yet.' : session ? 'Ask an admin to link your account to a rating column to rate songs.' : 'Log in to rate songs.',
             hideAvg,
             onToggleAvg: toggleHideAvg,
             onRate: rateCurrent,
@@ -699,7 +706,9 @@ export default function App() {
           reloadRaters={reloadRaters}
           onAdd={addSong}
           onEdit={openEdit}
-          onClose={() => setShowAdmin(false)}
+          onPreview={previewSong}
+          previewUrl={track?.song.preview ? track.song.vlink_url : null}
+          onClose={() => { setShowAdmin(false); previewSong(null) }}
           currentUserId={userId}
         />
       )}

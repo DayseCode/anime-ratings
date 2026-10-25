@@ -4,7 +4,7 @@ import { BADGE, KINDS, isYoutube } from '../utils.js'
 import AnimeThemesImport from './AnimeThemesImport.jsx'
 
 /* ---------------- Songs tab: add form (left) + search/delete (right) ---------------- */
-function SongsTab({ data, onAdd, onEdit }) {
+function SongsTab({ data, onAdd, onEdit, onPreview, previewUrl }) {
   const [kind, setKind] = useState('OP')
   const [f, setF] = useState({ title: '', yt: '', vlink: '', author: '', song: '', url: '' })
   const [query, setQuery] = useState('')
@@ -57,7 +57,7 @@ function SongsTab({ data, onAdd, onEdit }) {
 
   return (
     <>
-    <AnimeThemesImport data={data} onAdd={onAdd} />
+    <AnimeThemesImport data={data} onAdd={onAdd} onPreview={onPreview} previewUrl={previewUrl} />
     <div className="admin-grid">
       <form onSubmit={submit} className="admin-left">
         <label>{isInsert ? 'Anime title:' : 'Anime name:'}</label>
@@ -198,7 +198,7 @@ function UsersTab({ raters, reloadRaters, currentUserId }) {
   )
 }
 
-export default function AdminModal({ data, raters, reloadRaters, onAdd, onEdit, onClose, currentUserId }) {
+export default function AdminModal({ data, raters, reloadRaters, onAdd, onEdit, onPreview, previewUrl, onClose, currentUserId }) {
   const [tab, setTab] = useState('songs')
   return (
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
@@ -210,7 +210,7 @@ export default function AdminModal({ data, raters, reloadRaters, onAdd, onEdit, 
           <button className={tab === 'users' ? 'on' : ''} onClick={() => setTab('users')}>Users</button>
         </div>
         {tab === 'songs' ? (
-          <SongsTab data={data} onAdd={onAdd} onEdit={onEdit} />
+          <SongsTab data={data} onAdd={onAdd} onEdit={onEdit} onPreview={onPreview} previewUrl={previewUrl} />
         ) : (
           <UsersTab raters={raters} reloadRaters={reloadRaters} currentUserId={currentUserId} />
         )}

@@ -310,7 +310,7 @@ export default function Player({ track, liveSong, rating, autoNext, onClose, onN
   const error = ps.error || (current?.key === 'yt' && !ytId ? 'Cannot read this YouTube link.' : null)
 
   return (
-    <div className={`player ${full ? 'full' : ''}`} ref={rootRef}>
+    <div className={`player ${full ? 'full' : ''} ${track.song.preview ? 'preview' : ''}`} ref={rootRef}>
       {!full && ['nw', 'ne', 'sw', 'se'].map((c) => (
         <span key={c} className={`p-rz ${c}`} onPointerDown={(e) => startResize(e, c)} aria-hidden="true" />
       ))}
