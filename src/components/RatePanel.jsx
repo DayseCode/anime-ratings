@@ -4,7 +4,7 @@ import Icon from './Icon.jsx'
 
 /* Rating bar shown in the full-screen player: score the song you are watching
    (in YOUR column) and jump to the next song you have not rated yet. */
-export default function RatePanel({ song, raterId, column, hint, hideAvg, onToggleAvg, onRate, onNextUnrated }) {
+export default function RatePanel({ song, raterId, column, hint, hideAvg, onToggleAvg, onRate, onNextUnrated, onShuffle, blind }) {
   const [text, setText] = useState('')
   const [msg, setMsg] = useState('')
   const timer = useRef(null)
@@ -30,6 +30,11 @@ export default function RatePanel({ song, raterId, column, hint, hideAvg, onTogg
   const next = () => {
     if (!onNextUnrated()) flash('No unrated songs left in this list')
   }
+
+  const shuffle = () => {
+    if (!onShuffle()) flash('No unrated songs left in this list')
+  }
+  const blindHidden = Boolean(blind) && mine == null // blind mode: no average until I rate this song
 
   if (raterId == null) {
     return <div className="p-rate"><span className="p-rate-label">{hint}</span></div>
@@ -59,6 +64,7 @@ export default function RatePanel({ song, raterId, column, hint, hideAvg, onTogg
           <button className="btn small" onClick={() => onRate(null)} title="Remove my score">Clear</button>
         )}
       </div>
+      {!blindHidden && (
       <button
         className="p-rate-avg"
         onClick={onToggleAvg}
@@ -69,8 +75,12 @@ export default function RatePanel({ song, raterId, column, hint, hideAvg, onTogg
           ? `Avg #.# · ${song?.n ?? 0} vote${song?.n === 1 ? '' : 's'}`
           : `Avg ${song?.avg != null ? song.avg.toFixed(2) : '—'} · ${song?.n ?? 0} vote${song?.n === 1 ? '' : 's'}`}
       </button>
+      )}
       {msg && <span className="p-rate-msg">{msg}</span>}
-      <button className="btn primary p-rate-next" onClick={next}>Next unrated →</button>
+      <div className="p-rate-actions">
+        <button className="btn p-rate-shuffle" onClick={shuffle} title="Random song you haven’t rated">Shuffle</button>
+        <button className="btn primary p-rate-next" onClick={next}>Next unrated →</button>
+      </div>
     </div>
   )
 }

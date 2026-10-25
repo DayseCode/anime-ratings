@@ -12,6 +12,8 @@ import ColumnsMenu from './components/ColumnsMenu.jsx'
 import AccountMenu from './components/AccountMenu.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
 import StatsPage from './components/StatsPage.jsx'
+import TasteMatch from './components/TasteMatch.jsx'
+import './features.css'
 import { applySkin, isSkin } from './skins.js'
 
 const PAGE = 200
@@ -32,6 +34,7 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false)
   const [showAdmin, setShowAdmin] = useState(false)
   const [editing, setEditing] = useState(null)
+  const [showTaste, setShowTaste] = useState(false)
   const [track, setTrack] = useState(null) // what the player is playing
   const [online, setOnline] = useState([])
   const [toast, setToast] = useState(null)
@@ -349,7 +352,10 @@ export default function App() {
   )
 
   /* ---------- sort (local to this browser) ---------- */
+  const myRaterIdRef = useRef(myRaterId)
+  myRaterIdRef.current = myRaterId
   const onSort = useCallback((key) => {
+    if (blindRef.current && myRaterIdRef.current != null && (key === 'avg' || (key.startsWith('r:') && key !== `r:${myRaterIdRef.current}`))) return
     setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: ['title', 'author', 'song'].includes(key) ? 'asc' : 'desc' }))
   }, [])
 
@@ -422,6 +428,32 @@ export default function App() {
     [notify]
   )
 
+  // "blind mode": hide other people's scores / the average on songs I have not rated yet (off by default, saved in the account)
+  const metaBlind = session?.user?.user_metadata?.blind_mode === true
+  const [blind, setBlind] = useState(metaBlind)
+  useEffect(() => setBlind(metaBlind), [metaBlind])
+  const blindRef = useRef(blind)
+  blindRef.current = blind
+  const changeBlind = useCallback(
+    async (value) => {
+      const before = blindRef.current
+      setBlind(value)
+      const { error } = await supabase.auth.updateUser({ data: { blind_mode: value } })
+      if (error) {
+        setBlind(before)
+        notify(`Not saved: ${error.message}`)
+      }
+    },
+    [notify]
+  )
+  const blindOn = blind && myRaterId != null
+
+  // while blind mode is on, sorting by Avg or by someone else's column would leak the scores
+  const sortAllowed = useCallback((key) => !blindOn || !(key === 'avg' || (key.startsWith('r:') && key !== `r:${myRaterId}`)), [blindOn, myRaterId])
+  useEffect(() => {
+    if (!sortAllowed(sort.key)) setSort(DEFAULT_SORT)
+  }, [sortAllowed, sort.key])
+
   const changeVideoSource = useCallback(
     async (value) => {
       const before = prefRef.current
@@ -488,6 +520,15 @@ export default function App() {
     }
     return false
   }, [myRaterId])
+  // random playable song from the current list that I have not rated (any playable one if I have no column); false if none
+  const shuffle = useCallback(() => {
+    const cur = trackRef.current?.song.id
+    const pool = rowsRef.current.filter((s) => (s.youtube_url || s.vlink_url) && s.id !== cur && (myRaterId == null || s.scores[myRaterId] == null))
+    if (!pool.length) return false
+    const s = pool[Math.floor(Math.random() * pool.length)]
+    setTrack({ song: s, src: pickSource(s, prefRef.current) })
+    return true
+  }, [myRaterId])
   const prev = useCallback(() => step(-1), [step])
   const setSource = useCallback((src) => setTrack((t) => (t ? { ...t, src } : t)), [])
   const closePlayer = useCallback(() => setTrack(null), [])
@@ -538,6 +579,10 @@ export default function App() {
               skin={skin}
               onSkin={changeSkin}
               onVideoSource={changeVideoSource}
+              blind={blind}
+              blindAvailable={myRaterId != null}
+              onBlind={changeBlind}
+              onTaste={() => setShowTaste(true)}
               onAdmin={() => setShowAdmin(true)}
               onLogin={() => setShowAuth(true)}
               onLogout={() => supabase.auth.signOut()}
@@ -599,6 +644,7 @@ export default function App() {
             isAdmin={isAdmin}
             playingId={track?.song.id}
             sort={sort}
+            blind={blindOn}
             onSort={onSort}
             onSave={saveScore}
             onEdit={openEdit}
@@ -626,6 +672,8 @@ export default function App() {
             onToggleAvg: toggleHideAvg,
             onRate: rateCurrent,
             onNextUnrated: nextUnrated,
+            onShuffle: shuffle,
+            blind: blindOn,
           }}
           onClose={closePlayer}
           onNext={next}
@@ -634,6 +682,15 @@ export default function App() {
         />
       )}
 
+      {showTaste && (
+        <TasteMatch
+          data={data}
+          raters={raters}
+          myRaterId={myRaterId}
+          onPlay={(s) => { setShowTaste(false); playSong(s) }}
+          onClose={() => setShowTaste(false)}
+        />
+      )}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {showAdmin && isAdmin && (
         <AdminModal

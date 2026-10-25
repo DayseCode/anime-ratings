@@ -50,8 +50,10 @@ const ScoreCell = memo(function ScoreCell({ songId, raterId, value, editable, mi
   )
 })
 
-const Row = memo(function Row({ song, index, columns, raterById, myRaterId, isAdmin, playing, onSave, onEdit, onPlay }) {
+const Row = memo(function Row({ song, index, columns, raterById, myRaterId, isAdmin, blind, playing, onSave, onEdit, onPlay }) {
   const playable = song.youtube_url || song.vlink_url
+  // blind mode: until I rate this song, everyone else's scores and the average stay hidden
+  const hidden = blind && myRaterId != null && song.scores[myRaterId] == null
   return (
     <tr className={playing ? 'playing' : ''}>
       <td className="cell num">{index}</td>
@@ -73,14 +75,17 @@ const Row = memo(function Row({ song, index, columns, raterById, myRaterId, isAd
         if (k === 'song') return <td key={k} className="cell txt">{song.song}</td>
         if (k === 'avg') {
           return (
-            <td key={k} className="cell avg" title={`${song.n} score(s)`}>
-              {song.avg != null ? song.avg.toFixed(2) : '—'}
+            <td key={k} className="cell avg" title={hidden ? 'Rate this song to see the average' : `${song.n} score(s)`}>
+              {hidden ? <span className="blind-ph">#.#</span> : song.avg != null ? song.avg.toFixed(2) : '—'}
             </td>
           )
         }
         const r = raterById[k.slice(2)]
         if (!r) return null
         const mine = myRaterId != null && r.id === myRaterId
+        if (hidden && !mine) {
+          return <td key={k} className="cell score"><span className="blind-ph">•</span></td>
+        }
         return (
           <ScoreCell
             key={k}
@@ -97,7 +102,8 @@ const Row = memo(function Row({ song, index, columns, raterById, myRaterId, isAd
   )
 })
 
-export default function SongTable({ songs, kind, columns, raterById, myRaterId, isAdmin, playingId, sort, onSort, onSave, onEdit, onPlay }) {
+export default function SongTable({ songs, kind, columns, raterById, myRaterId, isAdmin, blind, playingId, sort, onSort, onSave, onEdit, onPlay }) {
+  const locked = (key) => blind && myRaterId != null && (key === 'avg' || (key.startsWith('r:') && key !== `r:${myRaterId}`))
   const arrow = (key) => (sort.key === key ? (sort.dir === 'asc' ? ' ▲' : ' ▼') : '')
 
   return (
@@ -112,15 +118,21 @@ export default function SongTable({ songs, kind, columns, raterById, myRaterId, 
               if (k === 'author' || k === 'song') {
                 return <th key={k} className="txt sortable" onClick={() => onSort(k)}>{k === 'author' ? 'Author' : 'Song'}{arrow(k)}</th>
               }
-              if (k === 'avg') return <th key={k} className="avg sortable" onClick={() => onSort('avg')}>Avg{arrow('avg')}</th>
+              if (k === 'avg') {
+                return (
+                  <th key={k} className={`avg sortable ${locked('avg') ? 'blind-off' : ''}`} onClick={() => onSort('avg')} title={locked('avg') ? 'Sorting is off in blind mode' : undefined}>
+                    Avg{arrow('avg')}
+                  </th>
+                )
+              }
               const r = raterById[k.slice(2)]
               if (!r) return null
               return (
                 <th
                   key={k}
-                  className={`score sortable ${myRaterId != null && r.id === myRaterId ? 'mine' : ''}`}
+                  className={`score sortable ${myRaterId != null && r.id === myRaterId ? 'mine' : ''} ${locked(k) ? 'blind-off' : ''}`}
                   onClick={() => onSort(k)}
-                  title={`Sort by ${r.name}`}
+                  title={locked(k) ? 'Sorting is off in blind mode' : `Sort by ${r.name}`}
                 >
                   {r.name}{arrow(k)}
                 </th>
@@ -138,6 +150,7 @@ export default function SongTable({ songs, kind, columns, raterById, myRaterId, 
               raterById={raterById}
               myRaterId={myRaterId}
               isAdmin={isAdmin}
+              blind={blind}
               playing={s.id === playingId}
               onSave={onSave}
               onEdit={onEdit}

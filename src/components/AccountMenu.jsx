@@ -3,8 +3,9 @@ import { SKINS } from '../skins.js'
 
 /* One compact "avatar + name" button instead of nick + column + role + 2 buttons.
    Click it for the details, the Admin panel and Log out. */
-export default function AccountMenu({ session, name, email, columnName, isAdmin, videoSource, onVideoSource, autoNext, onAutoNext, skin, onSkin, onAdmin, onLogin, onLogout }) {
+export default function AccountMenu({ session, name, email, columnName, isAdmin, videoSource, onVideoSource, autoNext, onAutoNext, blind, blindAvailable, onBlind, onTaste, skin, onSkin, onAdmin, onLogin, onLogout }) {
   const [open, setOpen] = useState(false)
+  const [skinOpen, setSkinOpen] = useState(false)
   const ref = useRef(null)
 
   useEffect(() => {
@@ -52,25 +53,56 @@ export default function AccountMenu({ session, name, email, columnName, isAdmin,
             </div>
           </div>
           <div className="acct-pref">
-            <span>Auto-play next song when one ends</span>
+            <span>Auto-play next song</span>
             <div className="seg" role="group" aria-label="Auto-play next song">
               <button className={!autoNext ? 'on' : ''} onClick={() => onAutoNext(false)}>Off</button>
               <button className={autoNext ? 'on' : ''} onClick={() => onAutoNext(true)}>On</button>
             </div>
           </div>
           <div className="acct-pref">
-            <span>Colour theme</span>
-            <div className="skin-pick" role="group" aria-label="Colour theme">
-              {SKINS.map((k) => (
-                <button key={k.id} className={`skin-opt ${skin === k.id ? 'on' : ''}`} onClick={() => onSkin(k.id)} aria-pressed={skin === k.id}>
-                  <span className="skin-dots" aria-hidden="true">
-                    {k.dots.map((c) => <i key={c} style={{ background: c }} />)}
-                  </span>
-                  {k.name}
-                </button>
-              ))}
+            <span>Blind mode{blindAvailable ? '' : ' (needs a linked column)'}</span>
+            <div className="seg" role="group" aria-label="Blind mode">
+              <button className={!blind ? 'on' : ''} onClick={() => onBlind(false)}>Off</button>
+              <button className={blind ? 'on' : ''} onClick={() => onBlind(true)}>On</button>
             </div>
           </div>
+          <div className="acct-pref">
+            <span>Colour theme</span>
+            {(() => {
+              const cur = SKINS.find((k) => k.id === skin) || SKINS[0]
+              const dots = (k) => (
+                <span className="skin-dots" aria-hidden="true">
+                  {k.dots.map((c) => <i key={c} style={{ background: c }} />)}
+                </span>
+              )
+              return (
+                <div className="skin-drop">
+                  <button className="skin-opt skin-cur" onClick={() => setSkinOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={skinOpen}>
+                    {dots(cur)}
+                    <span className="skin-cur-name">{cur.name}</span>
+                    <span className="caret">{skinOpen ? '▴' : '▾'}</span>
+                  </button>
+                  {skinOpen && (
+                    <div className="skin-list" role="listbox" aria-label="Colour theme">
+                      {SKINS.map((k) => (
+                        <button
+                          key={k.id}
+                          role="option"
+                          aria-selected={skin === k.id}
+                          className={`skin-opt ${skin === k.id ? 'on' : ''}`}
+                          onClick={() => { setSkinOpen(false); onSkin(k.id) }}
+                        >
+                          {dots(k)}
+                          {k.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+          </div>
+          <button className="btn" onClick={run(onTaste)}>Taste match</button>
           {isAdmin && <button className="btn" onClick={run(onAdmin)}>Admin panel</button>}
           <button className="btn" onClick={run(onLogout)}>Log out</button>
         </div>

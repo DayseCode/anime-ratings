@@ -56,6 +56,10 @@ function VideoEngine({ url, volume, muted, ctrl, onState, onEnded }) {
     ctrl.current = {
       toggle: () => (v.paused ? v.play().catch(() => {}) : v.pause()),
       seek: (t) => { v.currentTime = t },
+      seekBy: (d) => {
+        const max = Number.isFinite(v.duration) ? v.duration : Infinity
+        v.currentTime = Math.min(max, Math.max(0, v.currentTime + d))
+      },
     }
     return () => { ctrl.current = null }
   }, [ctrl])
@@ -148,6 +152,12 @@ function YouTubeEngine({ videoId, volume, muted, ctrl, onState, onEnded }) {
         p.getPlayerState() === 1 ? p.pauseVideo() : p.playVideo()
       },
       seek: (t) => player.current?.seekTo?.(t, true),
+      seekBy: (d) => {
+        const p = player.current
+        if (!p || !p.getCurrentTime) return
+        const max = p.getDuration?.() || Infinity
+        p.seekTo(Math.min(max, Math.max(0, (p.getCurrentTime() || 0) + d)), true)
+      },
     }
     return () => {
       dead = true
@@ -198,6 +208,71 @@ export default function Player({ track, liveSong, rating, autoNext, onClose, onN
       if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
     }
   }, [])
+
+  // keep the latest values in refs so the hotkey listener below is registered only once
+  const toggleFullRef = useRef(toggleFull)
+  toggleFullRef.current = toggleFull
+  const fullRef = useRef(full)
+  fullRef.current = full
+  const ratingRef = useRef(rating)
+  ratingRef.current = rating
+
+  // hotkeys (only while the player is open)
+  useEffect(() => {
+    let spaceHandled = false
+    const typing = (el) => {
+      if (!el || !el.tagName) return false
+      const tag = el.tagName
+      if (tag === 'INPUT') return el.type !== 'range' // the player's own sliders keep the hotkeys working
+      return tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable
+    }
+    const onKey = (e) => {
+      if (e.ctrlKey || e.altKey || e.metaKey || e.defaultPrevented) return
+      if (typing(e.target) || typing(document.activeElement)) return
+      if (document.querySelector('.overlay')) return // a modal is open
+      const c = ctrl.current
+      const stop = () => e.preventDefault()
+      if (e.code === 'Space' || e.key === ' ') {
+        stop()
+        spaceHandled = true // also swallow the keyup, otherwise a focused button would be clicked
+        if (!e.repeat) c?.toggle()
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        stop()
+        c?.seekBy?.((e.key === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 10 : 5))
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        stop()
+        const up = e.key === 'ArrowUp'
+        setVolume((v) => Math.min(100, Math.max(0, Math.round(v * 100) + (up ? 5 : -5))) / 100)
+        if (up) setMuted(false)
+      } else if (e.code === 'KeyM') {
+        if (e.repeat) return
+        stop()
+        setMuted((m) => !m)
+      } else if (e.code === 'KeyF') {
+        if (e.repeat) return
+        stop()
+        toggleFullRef.current()
+      } else if (fullRef.current && !e.shiftKey && !e.repeat && /^[0-9]$/.test(e.key)) {
+        const r = ratingRef.current
+        if (r && r.raterId != null) {
+          stop()
+          r.onRate(e.key === '0' ? 10 : Number(e.key))
+        }
+      }
+    }
+    const onKeyUp = (e) => {
+      if (spaceHandled && (e.code === 'Space' || e.key === ' ')) {
+        spaceHandled = false
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('keyup', onKeyUp)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // On phones the on-screen keyboard only shrinks the *visual* viewport, so a full-screen player
   // would stay behind it. Measure the covered strip and pad the player by that much (--kb).
@@ -298,7 +373,7 @@ export default function Player({ track, liveSong, rating, autoNext, onClose, onN
         <div className="p-controls">
           <div className="p-ctl-l">
             <button className="icon-btn big" onClick={onPrev} title="Previous in list"><Icon name="prev" fallback="⏮" /></button>
-            <button className="icon-btn big p-play" onClick={() => ctrl.current?.toggle()} title="Play / pause">{ps.playing ? <Icon name="pause" fallback="⏸" /> : <Icon name="play" fallback="▶" />}</button>
+            <button className="icon-btn big p-play" onClick={() => ctrl.current?.toggle()} title={'Play / pause (Space)\nLeft / Right: seek 5 s (Shift: 10 s)\nUp / Down: volume\nM: mute   F: full screen\nFull screen: 1-9 rate 1-9, 0 rate 10'}>{ps.playing ? <Icon name="pause" fallback="⏸" /> : <Icon name="play" fallback="▶" />}</button>
             <button className="icon-btn big" onClick={onNext} title="Next in list"><Icon name="next" fallback="⏭" /></button>
             <button className="icon-btn" onClick={() => setMuted(!muted)} title="Mute">{muted || volume === 0 ? <Icon name="mute" fallback="🔇" /> : <Icon name="volume" fallback="🔊" />}</button>
             <input
