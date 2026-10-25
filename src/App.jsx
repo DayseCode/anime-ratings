@@ -632,7 +632,7 @@ export default function App() {
       ) : loading ? (
         <div className="center-msg vw">Loading…</div>
       ) : onStats ? (
-        <StatsPage data={data} raters={raters} myRaterId={myRaterId} />
+        <StatsPage data={data} raters={raters} myRaterId={myRaterId} onPlay={playSong} />
       ) : (
         <>
           <SongTable

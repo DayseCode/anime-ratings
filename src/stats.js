@@ -19,7 +19,6 @@ export const AWARDS = [
   { key: 'zen', icon: '/icons/awards/zen.png', title: 'Zen Monk', tagline: 'Calm, steady, perfectly balanced scores.', order: 'asc', get: (e) => e.std, show: 'std', needsMin: true },
   { key: 'hive', icon: '/icons/awards/hive.png', title: 'Hive Mind', tagline: 'Always votes with the crowd. One of us!', order: 'asc', get: (e) => e.off, show: 'off', needsMin: true, offOnly: true },
   { key: 'wolf', icon: '/icons/awards/wolf.png', title: 'Lone Wolf', tagline: 'Walks their own path. The crowd? Never heard of it.', order: 'desc', get: (e) => e.off, show: 'off', needsMin: true, offOnly: true },
-  { key: 'half', icon: '/icons/awards/wizard.png', title: 'Half-Point Hero', tagline: 'Why pick 8 when 8.5 exists? Lives on the half-steps.', order: 'desc', get: (e) => e.halfShare, show: 'half', needsMin: true },
 ]
 
 const blank = () => ({ n: 0, sum: 0, sumSq: 0, tens: 0, ones: 0, halves: 0, offSum: 0, offN: 0 })
@@ -95,4 +94,69 @@ export function formatValue(show, v) {
     case 'half': return `${Math.round(v * 100)}% halves`
     default: return String(v)
   }
+}
+/* ---------------------------------------------------------------------------------------------
+   Insights (song rankings, strict vs generous) - also computed in the browser.
+   One result per scope: ALL / OP / ED / INSERT.
+   --------------------------------------------------------------------------------------------- */
+export const MIN_VOTES_TOP = 3 // a song needs this many votes to enter the Top 10 (one lucky 10 shouldn't win)
+export const MIN_VOTES_SPREAD = 4 // ... and this many to be called controversial / unanimous
+
+export function computeInsights(data, raters) {
+  const names = new Map(raters.map((r) => [r.id, r.name]))
+  const mk = () => ({ songCount: 0, unrated: 0, scores: 0, sum: 0, songs: [], people: new Map() })
+  const out = { ALL: mk(), OP: mk(), ED: mk(), INSERT: mk() }
+
+  for (const kind of KEYS) {
+    for (const song of data[kind] || []) {
+      const votes = Object.entries(song.scores || {})
+        .map(([rid, v]) => [Number(rid), v])
+        .filter(([rid]) => names.has(rid))
+      const n = votes.length
+      let total = 0
+      let sq = 0
+      let min = Infinity
+      let max = -Infinity
+      for (const [, v] of votes) {
+        total += v
+        sq += v * v
+        if (v < min) min = v
+        if (v > max) max = v
+      }
+      const avg = n ? total / n : null
+      const entry = n
+        ? { id: song.id, kind, title: song.title, song: song.song, youtube_url: song.youtube_url, vlink_url: song.vlink_url, n, avg, std: Math.sqrt(Math.max(0, sq / n - avg * avg)), min, max, ref: song }
+        : null
+
+      for (const scope of ['ALL', kind]) {
+        const s = out[scope]
+        s.songCount += 1
+        if (!n) s.unrated += 1
+        else s.songs.push(entry)
+        s.scores += n
+        s.sum += total
+        for (const [rid, v] of votes) {
+          let p = s.people.get(rid)
+          if (!p) {
+            p = { id: rid, name: names.get(rid), n: 0, sum: 0, biasSum: 0, biasN: 0 }
+            s.people.set(rid, p)
+          }
+          p.n += 1
+          p.sum += v
+          if (n >= 2) { p.biasSum += v - (total - v) / (n - 1); p.biasN += 1 } // vs. what the others gave the same song
+        }
+      }
+    }
+  }
+
+  const result = {}
+  for (const scope of Object.keys(out)) {
+    const s = out[scope]
+    const people = [...s.people.values()].map((p) => ({ ...p, avg: p.sum / p.n, bias: p.biasN ? p.biasSum / p.biasN : null }))
+    result[scope] = {
+      songCount: s.songCount, unrated: s.unrated, scores: s.scores, avg: s.scores ? s.sum / s.scores : null,
+      raters: people.length, songs: s.songs, people, minScores: MIN_SCORES[scope],
+    }
+  }
+  return result
 }
