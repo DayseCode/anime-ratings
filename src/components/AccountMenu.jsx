@@ -50,6 +50,7 @@ export default function AccountMenu({ session, name, email, columnName, isAdmin,
             <div className="seg" role="group" aria-label="Preferred video source">
               <button className={videoSource === 'yt' ? 'on' : ''} onClick={() => onVideoSource('yt')}>YouTube</button>
               <button className={videoSource === 'v' ? 'on' : ''} onClick={() => onVideoSource('v')}>VLINK</button>
+              <button className={videoSource === 'a' ? 'on' : ''} onClick={() => onVideoSource('a')}>ADB</button>
             </div>
           </div>
           <div className="acct-pref">

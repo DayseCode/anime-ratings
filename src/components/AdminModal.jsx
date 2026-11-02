@@ -6,7 +6,7 @@ import AnimeThemesImport from './AnimeThemesImport.jsx'
 /* ---------------- Songs tab: add form (left) + search/delete (right) ---------------- */
 function SongsTab({ data, onAdd, onEdit, onPreview, previewUrl }) {
   const [kind, setKind] = useState('OP')
-  const [f, setF] = useState({ title: '', yt: '', vlink: '', author: '', song: '', url: '' })
+  const [f, setF] = useState({ title: '', yt: '', vlink: '', adb: '', author: '', song: '', url: '' })
   const [query, setQuery] = useState('')
   const [msg, setMsg] = useState(null) // {type:'ok'|'error', text}
   const [busy, setBusy] = useState(false)
@@ -41,6 +41,7 @@ function SongsTab({ data, onAdd, onEdit, onPreview, previewUrl }) {
     } else {
       row = { kind, title, youtube_url: f.yt.trim() || null, vlink_url: f.vlink.trim() || null }
     }
+    if (f.adb.trim()) row.adb_url = f.adb.trim() // only sent when filled in
 
     const dup = data[kind].find(
       (s) => s.title.toLowerCase() === title.toLowerCase() && (s.song || '').toLowerCase() === (row.song || '').toLowerCase()
@@ -52,7 +53,7 @@ function SongsTab({ data, onAdd, onEdit, onPreview, previewUrl }) {
     setBusy(false)
     if (err) return setMsg({ type: 'error', text: err })
     setMsg({ type: 'ok', text: `Added "${title}"` })
-    setF({ title: '', yt: '', vlink: '', author: '', song: '', url: '' })
+    setF({ title: '', yt: '', vlink: '', adb: '', author: '', song: '', url: '' })
   }
 
   return (
@@ -71,6 +72,8 @@ function SongsTab({ data, onAdd, onEdit, onPreview, previewUrl }) {
             <input value={f.song} onChange={set('song')} placeholder="Song name" />
             <label>URL:</label>
             <input value={f.url} onChange={set('url')} placeholder="https://..." />
+            <label>Additional Link (Adb):</label>
+            <input value={f.adb} onChange={set('adb')} placeholder="https://..." />
           </>
         ) : (
           <>
@@ -78,6 +81,8 @@ function SongsTab({ data, onAdd, onEdit, onPreview, previewUrl }) {
             <input value={f.yt} onChange={set('yt')} placeholder="https://youtube.com/..." />
             <label>Additional Link (VLINK):</label>
             <input value={f.vlink} onChange={set('vlink')} placeholder="https://..." />
+            <label>Additional Link (Adb):</label>
+            <input value={f.adb} onChange={set('adb')} placeholder="https://..." />
           </>
         )}
 

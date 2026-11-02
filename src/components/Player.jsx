@@ -42,7 +42,7 @@ function noCaptions(p) {
   try { p.unloadModule('cc') } catch { /* ignore */ }
 }
 
-/* ---------- engine 1: direct video file (VLINK) ---------- */
+/* ---------- engine 1: direct video file (VLINK / Adb) ---------- */
 function VideoEngine({ url, volume, muted, ctrl, onState, onEnded }) {
   const ref = useRef(null)
 
@@ -302,7 +302,8 @@ export default function Player({ track, liveSong, rating, autoNext, onClose, onN
 
   // if YouTube refuses to play, fall back to the other link automatically
   useEffect(() => {
-    if (ps.error && current?.key === 'yt' && sources.some((s) => s.key === 'v')) onSource('v')
+    const other = sources.find((s) => s.key !== 'yt')
+    if (ps.error && current?.key === 'yt' && other) onSource(other.key)
   }, [ps.error]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const ytId = current?.key === 'yt' ? youtubeId(current.url) : null
@@ -319,7 +320,7 @@ export default function Player({ track, liveSong, rating, autoNext, onClose, onN
         {sources.length > 1 &&
           sources.map((s) => (
             <button key={s.key} className={`src-btn ${current.key === s.key ? 'on' : ''}`} onClick={() => onSource(s.key)}>
-              {s.key === 'yt' ? 'YT' : 'V'}
+              {s.key === 'yt' ? 'YT' : s.key === 'a' ? 'A' : 'V'}
             </button>
           ))}
         {current && <a className="icon-btn" href={current.url} target="_blank" rel="noopener noreferrer" title="Open in a new tab"><Icon name="open" fallback="↗" /></a>}
@@ -330,7 +331,7 @@ export default function Player({ track, liveSong, rating, autoNext, onClose, onN
         {current?.key === 'yt' && ytId && (
           <YouTubeEngine key={current.url} videoId={ytId} volume={volume} muted={muted} ctrl={ctrl} onState={merge} onEnded={autoNext ? onNext : undefined} />
         )}
-        {current?.key === 'v' && (
+        {(current?.key === 'v' || current?.key === 'a') && (
           <VideoEngine key={current.url} url={current.url} volume={volume} muted={muted} ctrl={ctrl} onState={merge} onEnded={autoNext ? onNext : undefined} />
         )}
         {error && (

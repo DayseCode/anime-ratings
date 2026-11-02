@@ -8,6 +8,7 @@ export default function EditSongModal({ song, onSave, onDelete, onClose }) {
     song: song.song || '',
     youtube_url: song.youtube_url || '',
     vlink_url: song.vlink_url || '',
+    adb_url: song.adb_url || '',
   })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -23,6 +24,7 @@ export default function EditSongModal({ song, onSave, onDelete, onClose }) {
       youtube_url: f.youtube_url.trim() || null,
       vlink_url: f.vlink_url.trim() || null,
     }
+    if ((song.adb_url || '') !== f.adb_url.trim()) patch.adb_url = f.adb_url.trim() || null // only touched when changed
     if (isInsert) {
       patch.author = f.author.trim() || null
       patch.song = f.song.trim() || null
@@ -53,6 +55,8 @@ export default function EditSongModal({ song, onSave, onDelete, onClose }) {
           <input value={f.youtube_url} onChange={set('youtube_url')} placeholder="https://youtube.com/..." />
           <label>Additional Link (VLINK):</label>
           <input value={f.vlink_url} onChange={set('vlink_url')} placeholder="https://..." />
+          <label>Additional Link (Adb):</label>
+          <input value={f.adb_url} onChange={set('adb_url')} placeholder="https://..." />
           {error && <p className="error">{error}</p>}
           <button className="btn primary wide" disabled={busy}>{busy ? 'Saving...' : 'Save changes'}</button>
         </form>

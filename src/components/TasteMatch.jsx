@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { BADGE } from '../utils.js'
+import { BADGE, hasLink } from '../utils.js'
 
 const MIN_COMMON = 10
 const MIN_OTHERS = 3
@@ -97,7 +97,7 @@ export default function TasteMatch({ data, raters, myRaterId, onPlay, onClose })
                   </thead>
                   <tbody>
                     {diffs.map((d) => {
-                      const playable = d.song.youtube_url || d.song.vlink_url
+                      const playable = hasLink(d.song)
                       const label = d.song.song ? `${d.song.title} – ${d.song.song}` : d.song.title
                       return (
                         <tr key={d.song.id}>

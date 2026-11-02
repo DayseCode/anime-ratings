@@ -1,5 +1,5 @@
 import { memo, useRef, useState } from 'react'
-import { parseScore, scoreHue } from '../utils.js'
+import { hasLink, parseScore, scoreHue } from '../utils.js'
 
 const ScoreCell = memo(function ScoreCell({ songId, raterId, value, editable, mine, onSave }) {
   const [editing, setEditing] = useState(false)
@@ -51,7 +51,7 @@ const ScoreCell = memo(function ScoreCell({ songId, raterId, value, editable, mi
 })
 
 const Row = memo(function Row({ song, index, columns, raterById, myRaterId, isAdmin, blind, playing, onSave, onEdit, onPlay }) {
-  const playable = song.youtube_url || song.vlink_url
+  const playable = hasLink(song)
   // blind mode: until I rate this song, everyone else's scores and the average stay hidden
   const hidden = blind && myRaterId != null && song.scores[myRaterId] == null
   return (
@@ -69,6 +69,7 @@ const Row = memo(function Row({ song, index, columns, raterById, myRaterId, isAd
         {playable && <button className="play-btn" title="Play here" onClick={() => onPlay(song)}>{playing ? '♪' : '▶'}</button>}
         {song.youtube_url && <a className="lk yt" href={song.youtube_url} target="_blank" rel="noopener noreferrer">YT</a>}
         {song.vlink_url && <a className="lk vl" href={song.vlink_url} target="_blank" rel="noopener noreferrer">V</a>}
+        {song.adb_url && <a className="lk ab" href={song.adb_url} target="_blank" rel="noopener noreferrer">A</a>}
       </td>
       {columns.map((k) => {
         if (k === 'author') return <td key={k} className="cell txt">{song.author}</td>

@@ -40,7 +40,7 @@ export function parseScore(text) {
   return Math.round(v * 2) / 2 // scores go in steps of 0.5 (7.3 -> 7.5, 7.2 -> 7)
 }
 
-export const SONG_COLUMNS = 'id,kind,title,author,song,youtube_url,vlink_url'
+export const SONG_COLUMNS = 'id,kind,title,author,song,youtube_url,vlink_url,adb_url'
 
 export async function fetchAllSongs(supabase, kind) {
   // Supabase returns max 1000 rows per request, so we page through.
@@ -79,14 +79,18 @@ export function playableSources(song) {
   const list = []
   if (song.youtube_url) list.push({ key: 'yt', url: song.youtube_url })
   if (song.vlink_url) list.push({ key: 'v', url: song.vlink_url })
+  if (song.adb_url) list.push({ key: 'a', url: song.adb_url })
   return list
 }
 
+// does the song have any link to play?
+export const hasLink = (song) => Boolean(song.youtube_url || song.vlink_url || song.adb_url)
+
 // which link to play first: the preferred one if the song has it, otherwise whichever exists
 export function pickSource(song, pref) {
-  if (pref === 'v' && song.vlink_url) return 'v'
-  if (pref !== 'v' && song.youtube_url) return 'yt'
-  return song.youtube_url ? 'yt' : 'v'
+  const url = { yt: song.youtube_url, v: song.vlink_url, a: song.adb_url }
+  if (url[pref]) return pref
+  return ['yt', 'v', 'a'].find((k) => url[k]) || 'yt'
 }
 
 // natural text order: "Bleach [OP2]" comes before "Bleach [OP10]"
@@ -152,7 +156,7 @@ export function applySongEvent(d, p) {
   if (!row || row.id == null || !d[row.kind]) return d
   const fields = {
     id: row.id, kind: row.kind, title: row.title, author: row.author,
-    song: row.song, youtube_url: row.youtube_url, vlink_url: row.vlink_url,
+    song: row.song, youtube_url: row.youtube_url, vlink_url: row.vlink_url, adb_url: row.adb_url ?? null,
   }
   const next = { ...d }
   let existing = null

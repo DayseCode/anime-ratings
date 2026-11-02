@@ -125,7 +125,7 @@ export function computeInsights(data, raters) {
       }
       const avg = n ? total / n : null
       const entry = n
-        ? { id: song.id, kind, title: song.title, song: song.song, youtube_url: song.youtube_url, vlink_url: song.vlink_url, n, avg, std: Math.sqrt(Math.max(0, sq / n - avg * avg)), min, max, ref: song }
+        ? { id: song.id, kind, title: song.title, song: song.song, youtube_url: song.youtube_url, vlink_url: song.vlink_url, adb_url: song.adb_url, n, avg, std: Math.sqrt(Math.max(0, sq / n - avg * avg)), min, max, ref: song }
         : null
 
       for (const scope of ['ALL', kind]) {

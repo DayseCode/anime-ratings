@@ -160,7 +160,7 @@ thead th.num, thead th.title, thead th.links { z-index: 5; background-color: var
 
 .txt { min-width: 10rem; max-width: 17.1429rem; white-space: normal; }
 .lk { display: inline-block; font-size: 0.7857rem; font-weight: 700; padding: 2px 0.4286rem; border-radius: 0.4286rem; margin: 0 2px; text-decoration: none; color: #fff; }
-.lk.yt { background: #e0414f; } .lk.vl { background: #4a74f0; }
+.lk.yt { background: #e0414f; } .lk.vl { background: #4a74f0; } .lk.ab { background: #44a944; }
 .play-btn { width: 1.8571rem; height: 1.5714rem; border: 0; border-radius: 0.5rem; background: var(--accent); color: #fff; cursor: pointer; font-size: 0.7857rem; margin-right: 0.2857rem; }
 .play-btn:hover { filter: brightness(1.15); }
 tr.playing .play-btn { background: var(--accent-2); }

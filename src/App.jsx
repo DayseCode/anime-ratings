@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { configured, supabase } from './supabase.js'
-import { KINDS, SONG_COLUMNS, applyScoreChanges, applySongEvent, compareText, fetchAllSongs, normalizeSong, pickSource, stats } from './utils.js'
+import { KINDS, SONG_COLUMNS, applyScoreChanges, applySongEvent, compareText, fetchAllSongs, hasLink, normalizeSong, pickSource, stats } from './utils.js'
 import SongTable from './components/SongTable.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import AdminModal from './components/AdminModal.jsx'
@@ -388,7 +388,7 @@ export default function App() {
   useEffect(() => setShowAll(false), [tab, search, onlyUnrated, sort])
 
   /* ---------- preferred video source (saved in the account, works on every device) ---------- */
-  const metaSource = session?.user?.user_metadata?.video_source === 'v' ? 'v' : 'yt'
+  const metaSource = ['v', 'a'].includes(session?.user?.user_metadata?.video_source) ? session.user.user_metadata.video_source : 'yt'
   const [videoPref, setVideoPref] = useState(metaSource)
   useEffect(() => setVideoPref(metaSource), [metaSource])
   const prefRef = useRef(videoPref)
@@ -485,7 +485,7 @@ export default function App() {
   const step = useCallback((dir) => {
     setTrack((t) => {
       if (!t || t.song.preview) return t
-      const list = rowsRef.current.filter((s) => s.youtube_url || s.vlink_url)
+      const list = rowsRef.current.filter((s) => hasLink(s))
       const i = list.findIndex((s) => s.id === t.song.id)
       const next = i === -1 ? list[dir > 0 ? 0 : list.length - 1] : list[i + dir]
       return next ? { song: next, src: pickSource(next, prefRef.current) } : t
@@ -515,7 +515,7 @@ export default function App() {
   // jump to the next song (in the list you are looking at) that I have not rated; returns false if none
   const nextUnrated = useCallback(() => {
     if (myRaterId == null) return false
-    const list = rowsRef.current.filter((s) => s.youtube_url || s.vlink_url)
+    const list = rowsRef.current.filter((s) => hasLink(s))
     const cur = trackRef.current?.song.id
     const i = list.findIndex((s) => s.id === cur)
     for (let k = 1; k <= list.length; k++) {
@@ -530,7 +530,7 @@ export default function App() {
   // random playable song from the current list that I have not rated (any playable one if I have no column); false if none
   const shuffle = useCallback(() => {
     const cur = trackRef.current?.song.id
-    const pool = rowsRef.current.filter((s) => (s.youtube_url || s.vlink_url) && s.id !== cur && (myRaterId == null || s.scores[myRaterId] == null))
+    const pool = rowsRef.current.filter((s) => hasLink(s) && s.id !== cur && (myRaterId == null || s.scores[myRaterId] == null))
     if (!pool.length) return false
     const s = pool[Math.floor(Math.random() * pool.length)]
     setTrack({ song: s, src: pickSource(s, prefRef.current) })

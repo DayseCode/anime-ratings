@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { BADGE, compareText, scoreHue } from '../utils.js'
+import { BADGE, compareText, hasLink, scoreHue } from '../utils.js'
 import { MIN_VOTES_SPREAD, MIN_VOTES_TOP, SCOPES, computeInsights, computeStats, formatValue } from '../stats.js'
 
 const COLS = [
@@ -55,7 +55,7 @@ function Insights({ ins, myRaterId, onPlay }) {
   const SongCell = ({ s }) => (
     <td className="st-name st-song">
       {scope === 'ALL' && <span className="muted st-kind">{BADGE[s.kind]}</span>}
-      {onPlay && (s.youtube_url || s.vlink_url) ? (
+      {onPlay && hasLink(s) ? (
         <button className="tm-link" onClick={() => onPlay(s.ref)} title="Play">{label(s)}</button>
       ) : (
         label(s)

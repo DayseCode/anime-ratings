@@ -36,6 +36,7 @@ create table public.songs (
   song        text,
   youtube_url text,
   vlink_url   text,
+  adb_url     text,
   created_at  timestamptz not null default now()
 );
 create index songs_kind_idx on public.songs (kind, id);
@@ -211,6 +212,7 @@ begin
     if new.song        is distinct from old.song        then changes := changes || format('song: "%s" → "%s"', coalesce(old.song, '—'), coalesce(new.song, '—')); end if;
     if new.youtube_url is distinct from old.youtube_url then changes := changes || format('YouTube link: %s → %s', coalesce(old.youtube_url, '—'), coalesce(new.youtube_url, '—')); end if;
     if new.vlink_url   is distinct from old.vlink_url   then changes := changes || format('VLINK: %s → %s', coalesce(old.vlink_url, '—'), coalesce(new.vlink_url, '—')); end if;
+    if new.adb_url     is distinct from old.adb_url     then changes := changes || format('Adb link: %s → %s', coalesce(old.adb_url, '—'), coalesce(new.adb_url, '—')); end if;
     if new.kind        is distinct from old.kind        then changes := changes || format('type: %s → %s', old.kind, new.kind); end if;
     if array_length(changes, 1) is null then return new; end if;
     perform public.audit_write('song', 'update',

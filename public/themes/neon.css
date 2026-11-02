@@ -200,7 +200,7 @@ thead th.num, thead th.title, thead th.links { z-index: 5; background-color: var
 .txt { min-width: 10rem; max-width: 17.1429rem; white-space: normal; }
 .lk { display: inline-block; font-size: 0.7857rem; font-weight: 700; padding: 2px 0.4286rem; border-radius: var(--r-xs); margin: 0 2px; text-decoration: none; color: #fff; transition: filter .15s; }
 .lk:hover { filter: brightness(1.15); }
-.lk.yt { background: #e0344f; } .lk.vl { background: #6a5cf0; }
+.lk.yt { background: #e0344f; } .lk.vl { background: #6a5cf0; } .lk.ab { background: #43a643; }
 .play-btn { width: 1.8571rem; height: 1.5714rem; border: 0; border-radius: var(--r-sm); background: var(--grad); color: var(--on-accent); cursor: pointer; font-size: 0.7857rem; margin-right: 0.2857rem; transition: filter .15s, box-shadow .15s; }
 .play-btn:hover { filter: brightness(1.12); box-shadow: var(--glow); }
 tr.playing .play-btn { background: var(--mint); color: var(--on-mint); }
