@@ -78,3 +78,8 @@ th.sortable.blind-off:hover { color: inherit; }
 .at-play { flex: none; min-width: 4.2857rem; }
 /* the mini player stays above the Admin window while previewing an imported song */
 .player.preview:not(.full) { z-index: 70; }
+
+/* Change log: keep the "Type" badge and the "Who" column readable (no mid-word breaks) */
+.logs-table td:nth-child(2) { overflow-wrap: normal; word-break: normal; min-width: 8rem; }
+.logs-table td:nth-child(3) { white-space: nowrap; overflow-wrap: normal; word-break: normal; }
+.logs-table .etag { white-space: nowrap; }
